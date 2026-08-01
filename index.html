@@ -839,15 +839,30 @@
 
 
   /* Croix : mettre un mot de cote */
+  /* Au repos, la croix etait en var(--line) sur fond blanc : 1,31:1 de
+     contraste, donc invisible. Elle est desormais lisible et libellee. */
   .card-x {
-    position: absolute; top: 10px; right: 10px;
-    width: 30px; height: 30px; padding: 6px;
-    display: flex; align-items: center; justify-content: center;
-    background: transparent; border: none; border-radius: 8px;
-    color: var(--line); cursor: pointer; transition: all .15s; z-index: 2;
+    position: absolute; top: 14px; right: 14px;
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 13px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 20px;
+    color: var(--muted); cursor: pointer; transition: all .15s; z-index: 2;
+    font-family: inherit; font-size: 10px; letter-spacing: 1.2px;
+    text-transform: uppercase; line-height: 1;
   }
-  .card-x svg { width: 100%; height: 100%; }
-  .card-x:hover { color: var(--bad); background: rgba(198, 40, 40, 0.09); }
+  .card-x svg { width: 13px; height: 13px; flex: none; }
+  .card-x:hover {
+    color: var(--bad); border-color: var(--bad);
+    background: rgba(198, 40, 40, 0.07);
+  }
+  /* la pastille se loge au-dessus de l'en-tete de la carte */
+  #quiz-view .quiz-card { padding-top: 62px; }
+  @media (max-width: 700px) {
+    .card-x-label { display: none; }
+    .card-x { padding: 9px; border-radius: 50%; }
+    .card-x svg { width: 15px; height: 15px; }
+    #quiz-view .quiz-card { padding-top: 56px; }
+  }
   .restore-btn {
     margin-left: auto; padding: 5px 12px; cursor: pointer;
     background: transparent; border: 1px solid var(--line); border-radius: 8px;
@@ -927,7 +942,7 @@
 
     <div id="quiz-view" style="display:none;">
       <div class="quiz-card">
-        <button class="card-x" id="exclude-btn" title="Mettre ce mot de côté (retiré des prochains quiz et de la liste des ratés)" aria-label="Mettre ce mot de côté"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+        <button class="card-x" id="exclude-btn" title="Mettre ce mot de côté (retiré des prochains quiz et de la liste des ratés)" aria-label="Mettre ce mot de côté"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg><span class="card-x-label">Mettre de côté</span></button>
         <div class="quiz-meta">
           <span class="theme-tag" id="current-theme">—</span>
           <span class="word-stats" id="word-stats"></span>

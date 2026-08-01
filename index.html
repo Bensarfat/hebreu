@@ -488,6 +488,53 @@
   }
   .grammar-category:first-child { margin-top: 0; }
 
+  /* COURS PANEL */
+  .cours-search {
+    width: 100%; padding: 14px 18px;
+    font-family: Georgia, 'Times New Roman', serif; font-size: 15px;
+    background: var(--paper); border: 1px solid var(--line); color: var(--ink);
+    box-shadow: 0 1px 2px var(--shadow);
+  }
+  .cours-search:focus { outline: none; border-color: var(--accent-soft); }
+  .cours-search::placeholder { color: var(--muted); }
+  .cours-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 14px 2px 18px; font-size: 11px; color: var(--muted);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
+  .cours-bar a { color: var(--accent); cursor: pointer; border-bottom: 1px solid transparent; }
+  .cours-bar a:hover { border-bottom-color: var(--accent); }
+  .cours-sec {
+    background: var(--paper); border: 1px solid var(--line);
+    margin-bottom: 12px; box-shadow: 0 1px 2px var(--shadow);
+  }
+  .cours-sec > summary {
+    list-style: none; cursor: pointer; padding: 16px 22px;
+    display: flex; justify-content: space-between; align-items: center; gap: 14px;
+  }
+  .cours-sec > summary::-webkit-details-marker { display: none; }
+  .cours-sec > summary .c {
+    font-size: 11px; color: var(--muted); letter-spacing: 1.5px;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .cours-sec[open] > summary { border-bottom: 1px solid var(--line); }
+  .cours-tbl { width: 100%; border-collapse: collapse; }
+  .cours-tbl td { padding: 10px 22px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .cours-tbl tr:last-child td { border-bottom: none; }
+  .cours-tbl tr:nth-child(even) { background: rgba(217, 205, 180, 0.13); }
+  .cours-he { direction: rtl; text-align: right; font-size: 21px; color: var(--accent); width: 46%; }
+  .cours-fr { color: var(--ink-soft); font-size: 15px; }
+  .cours-empty {
+    background: var(--paper); border: 1px solid var(--line);
+    padding: 34px; text-align: center; color: var(--muted);
+  }
+  .cours-tbl mark { background: rgba(184, 137, 58, 0.28); color: inherit; padding: 0 2px; }
+  @media (max-width: 600px) {
+    .cours-he { font-size: 19px; width: 44%; }
+    .cours-tbl td { padding: 9px 14px; }
+    .cours-sec > summary { padding: 14px 16px; }
+  }
+
   /* STATS PANEL */
   .stats-card {
     background: var(--paper);
@@ -631,6 +678,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="quiz">Quiz</button>
     <button class="tab" data-tab="grammar">Grammaire</button>
+    <button class="tab" data-tab="cours">Cours</button>
     <button class="tab" data-tab="stats">Mes stats</button>
   </div>
 
@@ -1909,6 +1957,17 @@
   </div>
 
   <!-- ================ STATS PANEL ================ -->
+  <!-- ================ COURS PANEL ================ -->
+  <div class="panel" id="panel-cours">
+    <input class="cours-search" id="cours-search" autocomplete="off"
+           placeholder="Rechercher un mot en français ou en hébreu…">
+    <div class="cours-bar">
+      <span id="cours-count"></span>
+      <span><a id="cours-open">Tout déplier</a> &nbsp;&middot;&nbsp; <a id="cours-close">Tout replier</a></span>
+    </div>
+    <div id="cours-list"></div>
+  </div>
+
   <div class="panel" id="panel-stats">
     <div class="stats-card">
       <h3>Vue d'ensemble</h3>
@@ -4720,6 +4779,77 @@ document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
 
 updateStartBtn();
 refreshGlobalStatsDisplay();
+
+/* ================ COURS — lexique consultable ================ */
+(function () {
+  var list = document.getElementById('cours-list');
+  var search = document.getElementById('cours-search');
+  var countEl = document.getElementById('cours-count');
+  if (!list || typeof VOCAB === 'undefined') return;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  /* recherche insensible aux points-voyelles (nikud) */
+  function strip(s) {
+    return String(s == null ? '' : s).replace(/[֑-ׇ]/g, '');
+  }
+  /* surlignage uniquement côté français : les index restent alignés */
+  function hlFr(txt, q) {
+    if (!q) return esc(txt);
+    var i = txt.toLowerCase().indexOf(q);
+    if (i < 0) return esc(txt);
+    return esc(txt.slice(0, i)) + '<mark>' + esc(txt.slice(i, i + q.length)) +
+           '</mark>' + esc(txt.slice(i + q.length));
+  }
+
+  function render() {
+    var raw = search.value.trim();
+    var q = strip(raw).toLowerCase();
+    var html = '', total = 0, shown = 0;
+
+    Object.keys(VOCAB).forEach(function (theme) {
+      var rows = VOCAB[theme] || [];
+      total += rows.length;
+      if (q) {
+        rows = rows.filter(function (e) {
+          return strip(e[1]).toLowerCase().indexOf(q) >= 0 ||
+                 strip(e[0]).toLowerCase().indexOf(q) >= 0 ||
+                 strip(e[2]).toLowerCase().indexOf(q) >= 0;
+        });
+      }
+      if (!rows.length) return;
+      shown += rows.length;
+      html += '<details class="cours-sec"' + (q ? ' open' : '') +
+              '><summary><span>' + esc(theme) + '</span><span class="c">' +
+              rows.length + ' mots</span></summary>' +
+              '<table class="cours-tbl"><tbody>' +
+              rows.map(function (e) {
+                return '<tr><td class="cours-he">' + esc(e[2] || e[0]) +
+                       '</td><td class="cours-fr">' + hlFr(e[1], q) + '</td></tr>';
+              }).join('') +
+              '</tbody></table></details>';
+    });
+
+    list.innerHTML = html ||
+      '<div class="cours-empty">Aucun mot ne correspond à &laquo;&nbsp;' + esc(raw) + '&nbsp;&raquo;</div>';
+    countEl.textContent = q
+      ? shown + ' mot' + (shown > 1 ? 's' : '') + ' trouvé' + (shown > 1 ? 's' : '')
+      : total + ' mots au total';
+  }
+
+  search.addEventListener('input', render);
+  document.getElementById('cours-open').addEventListener('click', function () {
+    list.querySelectorAll('details').forEach(function (d) { d.open = true; });
+  });
+  document.getElementById('cours-close').addEventListener('click', function () {
+    list.querySelectorAll('details').forEach(function (d) { d.open = false; });
+  });
+  render();
+})();
+
 </script>
 
 

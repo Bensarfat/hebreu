@@ -6,21 +6,21 @@
 <title>Quiz d'Hébreu · קויז עברית</title>
 <style>
   :root {
-    --bg: #0f1220;
-    --paper: #191d31;
-    --ink: #eef1f8;
-    --ink-soft: #c3cade;
-    --muted: #9aa3c0;
-    --line: #2c324e;
-    --accent: #6c8cff;
-    --accent-soft: #8aa4ff;
-    --olive: #39d98a;
-    --gold: #ffcf6b;
-    --rose: #d4a59a;
-    --he: #ffe08a;
-    --bad: #ff6b7a;
+    --bg: #ffffff;
+    --paper: #ffffff;
+    --ink: #000000;
+    --ink-soft: #2a2a30;
+    --muted: #6e6e78;
+    --line: #e0e0e6;
+    --accent: #2f55c9;
+    --accent-soft: #4a70e0;
+    --olive: #1a7f4b;
+    --gold: #a8760a;
+    --rose: #b05a6a;
+    --he: #1e3a8a;
+    --bad: #c62828;
     --on-accent: #ffffff;
-    --shadow: rgba(0, 0, 0, 0.45);
+    --shadow: rgba(0, 0, 0, 0.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -32,8 +32,8 @@
   }
   body {
     background-image:
-      radial-gradient(at 20% 10%, rgba(108, 140, 255, 0.10) 0%, transparent 55%),
-      radial-gradient(at 80% 90%, rgba(138, 108, 255, 0.09) 0%, transparent 55%);
+      radial-gradient(at 20% 10%, rgba(47, 85, 201, 0.035) 0%, transparent 55%),
+      radial-gradient(at 80% 90%, rgba(91, 70, 214, 0.030) 0%, transparent 55%);
   }
   .container {
     max-width: 780px;
@@ -661,13 +661,13 @@
   }
 
   /* ============================================================
-     THEME SOMBRE BLEU — surcharges
+     THEME CLAIR — noir sur blanc
      Le fichier etait deja pilote par variables : on redefinit la
      palette ci-dessus, et on traite ici les 3 roles que --accent
      cumulait (hebreu / interface / erreur) + les etats "inverses".
      ============================================================ */
 
-  /* Hebreu en ambre : ressort mieux que le bleu sur fond sombre */
+  /* Hebreu en bleu nuit : lisible sur blanc, distinct du texte noir */
   h1 .he,
   .quiz-word.hebrew,
   .grammar-title .he,
@@ -677,7 +677,7 @@
   .answer-voc,
   .cours-he { color: var(--he); }
 
-  /* Etats selectionnes : bleu plein, au lieu d'un bloc blanc */
+  /* Etats selectionnes : bleu plein */
   .mode-btn.active,
   .theme-chip.checked {
     background: var(--accent);
@@ -693,19 +693,19 @@
   .btn.primary:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
 
   .start-btn {
-    background: linear-gradient(135deg, var(--accent), #8a6cff);
+    background: linear-gradient(135deg, var(--accent), #5b46d6);
     color: var(--on-accent);
     border-radius: 2px;
   }
   .start-btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--accent), #8a6cff);
-    filter: brightness(1.12);
+    background: linear-gradient(135deg, var(--accent), #5b46d6);
+    filter: brightness(1.08);
   }
   .start-btn:disabled { background: var(--line); color: var(--muted); }
 
   /* Reussite / erreur : vert et rouge, jamais la couleur d'accent */
   .btn.correct { border-color: var(--olive); color: var(--olive); }
-  .btn.correct:hover { background: var(--olive); color: #0f1220; border-color: var(--olive); }
+  .btn.correct:hover { background: var(--olive); color: var(--on-accent); border-color: var(--olive); }
   .btn.wrong { border-color: var(--bad); color: var(--bad); }
   .btn.wrong:hover { background: var(--bad); color: var(--on-accent); border-color: var(--bad); }
   .score-wrong strong { color: var(--bad); }
@@ -716,14 +716,21 @@
 
   /* Onglet Cours */
   .cours-search { font-family: inherit; }
-  .cours-tbl tr:nth-child(even) { background: rgba(255, 255, 255, 0.025); }
-  .cours-tbl mark { background: rgba(108, 140, 255, 0.32); color: var(--ink); }
+  .cours-tbl tr:nth-child(even) { background: rgba(0, 0, 0, 0.022); }
+  .cours-tbl mark { background: rgba(47, 85, 201, 0.16); color: var(--ink); }
 
-  ::selection { background: rgba(108, 140, 255, 0.35); }
+  ::selection { background: rgba(47, 85, 201, 0.18); }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+
+  /* Sur blanc, les survols en var(--bg) seraient invisibles */
+  .grammar-header:hover { background: #f5f6f9; }
+  .theme-chip:hover { background: #f5f6f9; }
+  .mode-btn:hover { background: #f5f6f9; }
+  ::-webkit-scrollbar-track { background: #f2f2f5; }
 
 </style>
 </head>

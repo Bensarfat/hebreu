@@ -837,6 +837,25 @@
     .judge-btn svg { width: 30px; height: 30px; }
   }
 
+
+  /* Croix : mettre un mot de cote */
+  .card-x {
+    position: absolute; top: 10px; right: 10px;
+    width: 30px; height: 30px; padding: 6px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; border-radius: 8px;
+    color: var(--line); cursor: pointer; transition: all .15s; z-index: 2;
+  }
+  .card-x svg { width: 100%; height: 100%; }
+  .card-x:hover { color: var(--bad); background: rgba(198, 40, 40, 0.09); }
+  .restore-btn {
+    margin-left: auto; padding: 5px 12px; cursor: pointer;
+    background: transparent; border: 1px solid var(--line); border-radius: 8px;
+    font-family: inherit; font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); transition: all .15s;
+  }
+  .restore-btn:hover { border-color: var(--accent); color: var(--accent); }
+
 </style>
 </head>
 <body>
@@ -908,6 +927,7 @@
 
     <div id="quiz-view" style="display:none;">
       <div class="quiz-card">
+        <button class="card-x" id="exclude-btn" title="Mettre ce mot de côté (retiré des prochains quiz et de la liste des ratés)" aria-label="Mettre ce mot de côté"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
         <div class="quiz-meta">
           <span class="theme-tag" id="current-theme">—</span>
           <span class="word-stats" id="word-stats"></span>
@@ -2194,6 +2214,15 @@
     <div class="stats-card">
       <h3>Top 15 des mots à revoir</h3>
       <ul class="difficult-list" id="difficult-list"><li style="color: var(--muted); justify-content: center; font-style: italic;">Aucun mot à revoir pour l'instant — démarre un quiz !</li></ul>
+    </div>
+
+    <div class="stats-card" id="excluded-card" style="display:none;">
+      <h3>Mots mis de côté</h3>
+      <p class="missed-intro" id="excluded-intro">—</p>
+      <div class="missed-actions">
+        <button class="btn" id="excluded-toggle">Voir la liste</button>
+      </div>
+      <ul class="difficult-list" id="excluded-list" style="display:none;"></ul>
     </div>
 
     <div class="stats-card">
@@ -4705,6 +4734,7 @@ function loadData() {
 function defaultData() {
   return {
     wordStats: {},   // "he|fr" → {seen, correct, wrong}
+    excluded: [],    // "he|fr" des mots mis de cote
     preferences: {
       mode: 'normal',
       direction: 'fr-he',
@@ -4740,6 +4770,22 @@ const state = {
 };
 
 function wordKey(item) { return item.he + '|' + item.fr; }
+
+/* --- mots mis de cote : exclus des series ET des listes de rates ---
+   On conserve leurs statistiques : la mise de cote est reversible. */
+if (!Array.isArray(storage.excluded)) storage.excluded = [];
+function isExcludedKey(k) { return storage.excluded.indexOf(k) !== -1; }
+function isExcluded(item) { return isExcludedKey(wordKey(item)); }
+function excludeWord(item) {
+  const k = wordKey(item);
+  if (!isExcludedKey(k)) storage.excluded.push(k);
+  saveData();
+}
+function unexcludeWord(k) {
+  const i = storage.excluded.indexOf(k);
+  if (i !== -1) storage.excluded.splice(i, 1);
+  saveData();
+}
 function getWordStat(item) {
   return storage.wordStats[wordKey(item)] || { seen: 0, correct: 0, wrong: 0 };
 }
@@ -4771,6 +4817,7 @@ function computeGlobalStats() {
   let seen = 0, mastered = 0, difficult = 0;
   let totalCorrect = 0, totalAttempts = 0;
   for (const k in storage.wordStats) {
+    if (isExcludedKey(k)) continue;
     const s = storage.wordStats[k];
     seen++;
     if (isMastered(s)) mastered++;
@@ -4798,7 +4845,7 @@ function refreshGlobalStatsDisplay() {
   for (const theme in VOCAB) {
     VOCAB[theme].forEach(([he, fr]) => {
       const stat = storage.wordStats[he + '|' + fr];
-      if (stat && stat.wrong > 0) {
+      if (stat && stat.wrong > 0 && !isExcludedKey(he + '|' + fr)) {
         allWords.push({ he, fr, theme, stat });
       }
     });
@@ -4811,6 +4858,7 @@ function refreshGlobalStatsDisplay() {
     return b.stat.wrong - a.stat.wrong;
   });
   if (typeof refreshMissedCard === 'function') refreshMissedCard();
+  if (typeof refreshExcludedCard === 'function') refreshExcludedCard();
 
   const top = allWords.slice(0, 15);
   const list = document.getElementById('difficult-list');
@@ -4937,7 +4985,7 @@ function updateStartBtn() {
     state.selectedThemes.forEach(theme => {
       VOCAB[theme].forEach(([he, fr]) => {
         const stat = storage.wordStats[he + '|' + fr];
-        if (isMissed(stat)) count++;
+        if (isMissed(stat) && !isExcludedKey(he + '|' + fr)) count++;
       });
     });
     if (count === 0) {
@@ -4984,6 +5032,7 @@ function buildPool() {
     VOCAB[theme].forEach(entry => {
       const he = entry[0], fr = entry[1], heVoc = entry[2] || null;
       const stat = storage.wordStats[he + '|' + fr];
+      if (isExcludedKey(he + '|' + fr)) return;
       if (state.mode === 'review') {
         if (isMissed(stat)) cands.push({ he, fr, heVoc, theme, w: 1 });
       } else {
@@ -5101,7 +5150,7 @@ function reveal() {
 /* Toute la carte est cliquable : reveal() ressort immediatement si la
    reponse est deja affichee, donc un second clic ne fait rien. */
 document.querySelector('#quiz-view .quiz-card').addEventListener('click', e => {
-  if (e.target.closest('.judge-btn')) return;
+  if (e.target.closest('.judge-btn') || e.target.closest('.card-x')) return;
   reveal();
 });
 // Touches clavier : Espace ou Entrée pour révéler la réponse
@@ -5301,7 +5350,7 @@ function allMissedWords() {
     VOCAB[theme].forEach(entry => {
       const he = entry[0], fr = entry[1], heVoc = entry[2] || null;
       const stat = storage.wordStats[he + '|' + fr];
-      if (isMissed(stat)) out.push({ he, fr, heVoc, theme, stat });
+      if (isMissed(stat) && !isExcludedKey(he + '|' + fr)) out.push({ he, fr, heVoc, theme, stat });
     });
   }
   out.sort((a, b) => b.stat.wrong - a.stat.wrong);
@@ -5436,6 +5485,83 @@ document.getElementById('missed-quiz').addEventListener('click', () => {
 });
 
 refreshMissedCard();
+
+
+/* ============================================
+   MOTS MIS DE COTE
+   ============================================ */
+
+/* La croix retire le mot des series a venir et des listes de rates,
+   puis enchaine sur la question suivante. Les statistiques sont
+   conservees : le mot peut etre remis en jeu depuis l'onglet Stats. */
+document.getElementById('exclude-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  if (!state.current) return;
+  const k = wordKey(state.current);
+  excludeWord(state.current);
+  state.missed = state.missed.filter(w => wordKey(w) !== k);
+  state.pool = state.pool.filter(w => wordKey(w) !== k);
+  updateScore();
+  refreshExcludedCard();
+  nextQuestion();
+});
+
+function allExcludedWords() {
+  const out = [];
+  for (const theme in VOCAB) {
+    VOCAB[theme].forEach(entry => {
+      const he = entry[0], fr = entry[1], heVoc = entry[2] || null;
+      if (isExcludedKey(he + '|' + fr)) out.push({ he, fr, heVoc, theme });
+    });
+  }
+  return out;
+}
+
+function renderExcludedList() {
+  const el = document.getElementById('excluded-list');
+  const words = allExcludedWords();
+  el.innerHTML = words.map(w =>
+    '<li><span class="word-he" dir="rtl">' + (w.heVoc || w.he) + '</span>' +
+    '<span class="word-fr">' + w.fr + '</span>' +
+    '<button class="restore-btn" data-key="' + w.he + '|' + w.fr + '">Remettre</button></li>'
+  ).join('');
+  el.querySelectorAll('.restore-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      unexcludeWord(btn.dataset.key);
+      renderExcludedList();
+      refreshExcludedCard();
+      refreshGlobalStatsDisplay();
+      updateStartBtn();
+    });
+  });
+}
+
+function refreshExcludedCard() {
+  const n = storage.excluded.length;
+  const card = document.getElementById('excluded-card');
+  if (!n) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('excluded-intro').textContent =
+    n + ' mot' + (n > 1 ? 's' : '') + ' mis de côté : ' +
+    (n > 1 ? 'ils n\'apparaîtront plus' : 'il n\'apparaîtra plus') +
+    ' dans les quiz ni dans la liste des ratés.';
+  if (document.getElementById('excluded-list').style.display !== 'none') renderExcludedList();
+}
+
+document.getElementById('excluded-toggle').addEventListener('click', () => {
+  const list = document.getElementById('excluded-list');
+  const btn = document.getElementById('excluded-toggle');
+  if (list.style.display === 'none') {
+    renderExcludedList();
+    list.style.display = 'block';
+    btn.textContent = 'Masquer la liste';
+  } else {
+    list.style.display = 'none';
+    btn.textContent = 'Voir la liste';
+  }
+});
+
+refreshExcludedCard();
 
 </script>
 

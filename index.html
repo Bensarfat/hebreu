@@ -738,6 +738,55 @@
   .mode-btn.active:hover,
   .dir-btn.active:hover { filter: brightness(1.15); }
 
+
+  /* ============================================================
+     MISE EN PAGE ADAPTATIVE
+     Le conteneur s'elargit par paliers. La largeur sert la ou elle
+     aide (puces de themes, lexique, grammaire) ; la question du quiz
+     et les textes suivis restent bornes pour rester lisibles.
+     ============================================================ */
+  @media (min-width: 1000px) { .container { max-width: 940px; } }
+  @media (min-width: 1280px) { .container { max-width: 1180px; padding-left: 32px; padding-right: 32px; } }
+  @media (min-width: 1600px) { .container { max-width: 1440px; } }
+  @media (min-width: 1900px) { .container { max-width: 1660px; } }
+
+  @media (min-width: 1000px) {
+    /* la question reste centree : une ligne de texte tres large se lit mal */
+    .quiz-card, .score-bar, #series-end .quiz-card {
+      max-width: 860px; margin-left: auto; margin-right: auto;
+    }
+    .grammar-intro { max-width: 860px; }
+
+    /* lexique et grammaire en colonnes */
+    #cours-list {
+      display: grid; gap: 12px; align-items: start;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    }
+    #grammar-list {
+      display: grid; gap: 12px; align-items: start;
+      grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+    }
+    .cours-sec, .grammar-section { margin-bottom: 0; }
+    .grammar-category { grid-column: 1 / -1; margin-top: 18px; }
+    .grammar-category:first-child { margin-top: 0; }
+  }
+
+  /* ============================================================
+     SERIE ET MOTS RATES
+     ============================================================ */
+  .series-score { font-size: 46px; font-weight: bold; color: var(--accent); margin: 6px 0 2px; }
+  .series-sub { color: var(--muted); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .series-msg { margin: 14px 0 22px; color: var(--ink-soft); font-size: 15px; }
+  .missed-toggle {
+    display: inline-block; margin-top: 20px; cursor: pointer;
+    color: var(--accent); font-size: 13px; border-bottom: 1px solid transparent;
+  }
+  .missed-toggle:hover { border-bottom-color: var(--accent); }
+  .missed-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .missed-intro { font-size: 13px; color: var(--ink-soft); margin-bottom: 14px; }
+  .missed-empty { color: var(--muted); font-style: italic; justify-content: center; }
+  #series-missed-list { text-align: left; margin-top: 14px; }
+
 </style>
 </head>
 <body>
@@ -781,12 +830,20 @@
           <button class="dir-btn mode-btn" data-dir="mixed">Aléatoire</button>
         </div>
 
+        <h2>③ Longueur de la série</h2>
+        <div class="mode-group">
+          <button class="len-btn mode-btn" data-len="10">10 mots</button>
+          <button class="len-btn mode-btn" data-len="20">20 mots</button>
+          <button class="len-btn mode-btn" data-len="50">50 mots</button>
+          <button class="len-btn mode-btn" data-len="0">Tous les mots</button>
+        </div>
+
         <div id="review-info" class="review-info" style="display:none;">
-          Mode Révision : tu reverras en priorité les mots que tu as ratés au moins une fois.
+          Mode Révision : la série ne contient que les mots que tu as ratés au moins une fois.
           <span id="review-count"></span>
         </div>
 
-        <h2 id="themes-label">③ Thèmes (choisis-en au moins un)</h2>
+        <h2 id="themes-label">④ Thèmes (choisis-en au moins un)</h2>
         <div class="themes-grid" id="themes-grid"><div class="theme-chip checked" data-theme="Bases &amp; pronoms"><span>Bases &amp; pronoms</span><span class="count">47</span></div><div class="theme-chip checked" data-theme="Temps &amp; fréquence"><span>Temps &amp; fréquence</span><span class="count">33</span></div><div class="theme-chip checked" data-theme="Famille"><span>Famille</span><span class="count">25</span></div><div class="theme-chip checked" data-theme="Personnes &amp; âges"><span>Personnes &amp; âges</span><span class="count">14</span></div><div class="theme-chip checked" data-theme="Corps"><span>Corps</span><span class="count">25</span></div><div class="theme-chip checked" data-theme="Santé &amp; médecine (base)"><span>Santé &amp; médecine (base)</span><span class="count">21</span></div><div class="theme-chip checked" data-theme="Médecine (avancé)"><span>Médecine (avancé)</span><span class="count">34</span></div><div class="theme-chip checked" data-theme="Maison &amp; meubles"><span>Maison &amp; meubles</span><span class="count">24</span></div><div class="theme-chip checked" data-theme="Nourriture &amp; repas"><span>Nourriture &amp; repas</span><span class="count">41</span></div><div class="theme-chip checked" data-theme="Restaurant &amp; café"><span>Restaurant &amp; café</span><span class="count">16</span></div><div class="theme-chip checked" data-theme="Vêtements"><span>Vêtements</span><span class="count">22</span></div><div class="theme-chip checked" data-theme="Couleurs"><span>Couleurs</span><span class="count">11</span></div><div class="theme-chip checked" data-theme="Adjectifs"><span>Adjectifs</span><span class="count">42</span></div><div class="theme-chip checked" data-theme="Verbes (infinitif)"><span>Verbes (infinitif)</span><span class="count">59</span></div><div class="theme-chip" data-theme="Verbes au présent (conjugaison)"><span>Verbes au présent (conjugaison)</span><span class="count">23</span></div><div class="theme-chip" data-theme="Verbes Nif&#39;al (réflexifs/passifs)"><span>Verbes Nif'al (réflexifs/passifs)</span><span class="count">13</span></div><div class="theme-chip checked" data-theme="Verbes Hitpa&#39;el (réfléchis)"><span>Verbes Hitpa'el (réfléchis)</span><span class="count">14</span></div><div class="theme-chip checked" data-theme="Magasins &amp; ville"><span>Magasins &amp; ville</span><span class="count">23</span></div><div class="theme-chip" data-theme="Météo &amp; saisons"><span>Météo &amp; saisons</span><span class="count">18</span></div><div class="theme-chip checked" data-theme="Géographie &amp; directions"><span>Géographie &amp; directions</span><span class="count">29</span></div><div class="theme-chip checked" data-theme="Transports"><span>Transports</span><span class="count">12</span></div><div class="theme-chip checked" data-theme="Travail &amp; emploi"><span>Travail &amp; emploi</span><span class="count">36</span></div><div class="theme-chip" data-theme="Histoire &amp; sionisme"><span>Histoire &amp; sionisme</span><span class="count">36</span></div><div class="theme-chip" data-theme="Société &amp; identité"><span>Société &amp; identité</span><span class="count">31</span></div><div class="theme-chip" data-theme="Verbes (cours 40-42)"><span>Verbes (cours 40-42)</span><span class="count">26</span></div><div class="theme-chip" data-theme="Expressions de temps (futur)"><span>Expressions de temps (futur)</span><span class="count">15</span></div><div class="theme-chip" data-theme="Identité &amp; état civil"><span>Identité &amp; état civil</span><span class="count">25</span></div><div class="theme-chip" data-theme="Agenda &amp; rendez-vous"><span>Agenda &amp; rendez-vous</span><span class="count">12</span></div><div class="theme-chip" data-theme="Verbes (cours 43)"><span>Verbes (cours 43)</span><span class="count">12</span></div><div class="theme-chip" data-theme="Participes passifs (בינוני פעול)"><span>Participes passifs (בינוני פעול)</span><span class="count">26</span></div><div class="theme-chip" data-theme="Connecteurs temporels (cours 46)"><span>Connecteurs temporels (cours 46)</span><span class="count">14</span></div><div class="theme-chip" data-theme="Désert &amp; Néguev (cours 46-47)"><span>Désert &amp; Néguev (cours 46-47)</span><span class="count">30</span></div><div class="theme-chip" data-theme="Verbes (cours 44-47)"><span>Verbes (cours 44-47)</span><span class="count">12</span></div><div class="theme-chip" data-theme="Sécurité &amp; danger (cours 48)"><span>Sécurité &amp; danger (cours 48)</span><span class="count">12</span></div><div class="theme-chip" data-theme="Verbes (cours 48-49)"><span>Verbes (cours 48-49)</span><span class="count">16</span></div><div class="theme-chip" data-theme="Religion &amp; société israélienne"><span>Religion &amp; société israélienne</span><span class="count">29</span></div><div class="theme-chip" data-theme="Divers (cours 51)"><span>Divers (cours 51)</span><span class="count">20</span></div><div class="theme-chip checked" data-theme="Chiffres (1-10)"><span>Chiffres (1-10)</span><span class="count">22</span></div><div class="theme-chip checked" data-theme="Ordinaux (1er - 10e)"><span>Ordinaux (1er - 10e)</span><span class="count">20</span></div><div class="theme-chip checked" data-theme="Nature &amp; société"><span>Nature &amp; société</span><span class="count">35</span></div><div class="theme-chip checked" data-theme="Slang &amp; expressions"><span>Slang &amp; expressions</span><span class="count">46</span></div></div>
         <div class="theme-actions">
           <a id="select-all">Tout sélectionner</a>
@@ -824,6 +881,23 @@
         <span class="score-item score-wrong"><strong id="score-w">0</strong>faux</span>
         <span class="score-item"><strong id="score-t">0</strong>total</span>
         <a class="reset-link" id="back-setup">← Réglages</a>
+      </div>
+    </div>
+
+    <div id="series-end" style="display:none;">
+      <div class="quiz-card">
+        <div class="series-sub">Série terminée</div>
+        <div class="series-score" id="series-score">—</div>
+        <div class="series-msg" id="series-msg"></div>
+        <div class="actions">
+          <button class="btn primary" id="series-again">Nouvelle série</button>
+          <button class="btn wrong" id="series-review" style="display:none;">Rejouer les ratés</button>
+          <button class="btn" id="series-back">← Réglages</button>
+        </div>
+        <div id="series-missed-wrap" style="display:none;">
+          <span class="missed-toggle" id="series-missed-toggle">Voir les mots ratés ▾</span>
+          <ul class="difficult-list" id="series-missed-list" style="display:none;"></ul>
+        </div>
       </div>
     </div>
   </div>
@@ -2068,6 +2142,16 @@
     <div class="stats-card">
       <h3>Top 15 des mots à revoir</h3>
       <ul class="difficult-list" id="difficult-list"><li style="color: var(--muted); justify-content: center; font-style: italic;">Aucun mot à revoir pour l'instant — démarre un quiz !</li></ul>
+    </div>
+
+    <div class="stats-card">
+      <h3>Mes mots ratés</h3>
+      <p class="missed-intro" id="missed-intro">—</p>
+      <div class="missed-actions">
+        <button class="btn" id="missed-toggle">Voir la liste</button>
+        <button class="btn primary" id="missed-quiz">Quiz sur ces mots</button>
+      </div>
+      <ul class="difficult-list" id="missed-list" style="display:none;"></ul>
     </div>
 
     <div class="stats-card">
@@ -4435,7 +4519,9 @@ const state = {
   mode: storage.preferences.mode || 'normal',
   direction: storage.preferences.direction || 'fr-he',
   selectedThemes: new Set(storage.preferences.selectedThemes || Object.keys(VOCAB)),
+  seriesLength: (storage.preferences.seriesLength !== undefined ? storage.preferences.seriesLength : 20),
   pool: [],
+  missed: [],
   current: null,
   revealed: false,
   correct: 0,
@@ -4465,6 +4551,9 @@ function isMastered(stat) {
   if (stat.seen >= 4 && stat.correct / stat.seen >= 0.8) return true;
   return false;
 }
+/* "rate" = jamais reussi a l'usage courant : au moins une erreur.
+   Plus large que isDifficult, qui exige plus d'erreurs que de reussites. */
+function isMissed(stat) { return !!stat && stat.wrong > 0; }
 function isDifficult(stat) {
   if (!stat || stat.seen === 0) return false;
   return stat.wrong > stat.correct;
@@ -4513,6 +4602,8 @@ function refreshGlobalStatsDisplay() {
     if (Math.abs(aRatio - bRatio) > 0.05) return bRatio - aRatio;
     return b.stat.wrong - a.stat.wrong;
   });
+  if (typeof refreshMissedCard === 'function') refreshMissedCard();
+
   const top = allWords.slice(0, 15);
   const list = document.getElementById('difficult-list');
   if (top.length === 0) {
@@ -4638,19 +4729,22 @@ function updateStartBtn() {
     state.selectedThemes.forEach(theme => {
       VOCAB[theme].forEach(([he, fr]) => {
         const stat = storage.wordStats[he + '|' + fr];
-        if (isDifficult(stat)) count++;
+        if (isMissed(stat)) count++;
       });
     });
     if (count === 0) {
       btn.disabled = true;
-      btn.textContent = 'Aucun mot à réviser dans ces thèmes';
+      btn.textContent = 'Aucun mot raté dans ces thèmes';
     } else {
       btn.disabled = false;
-      btn.textContent = `Commencer la révision (${count} mots)`;
+      const n = state.seriesLength === 0 ? count : Math.min(state.seriesLength, count);
+      btn.textContent = `Réviser ${n} mot${n > 1 ? 's' : ''} raté${n > 1 ? 's' : ''}`;
     }
   } else {
     btn.disabled = false;
-    btn.textContent = 'Commencer le quiz';
+    btn.textContent = state.seriesLength === 0
+      ? 'Commencer — tous les mots'
+      : `Commencer une série de ${state.seriesLength}`;
   }
 }
 
@@ -4660,6 +4754,8 @@ document.getElementById('start-btn').addEventListener('click', () => {
   if (state.pool.length === 0) return;
   state.correct = 0; state.wrong = 0; state.total = 0; state.questionNum = 0;
   state.recentlySeen = [];
+  state.missed = [];
+  document.getElementById('series-end').style.display = 'none';
   updateScore();
   document.getElementById('setup-view').style.display = 'none';
   document.getElementById('quiz-view').style.display = 'block';
@@ -4673,47 +4769,51 @@ document.getElementById('back-setup').addEventListener('click', () => {
 });
 
 function buildPool() {
-  state.pool = [];
+  /* On constitue une file de mots DISTINCTS, tiree au sort avec ponderation
+     et sans remise : plus de repetition a l'interieur d'une meme serie. */
+  const cands = [];
   state.selectedThemes.forEach(theme => {
     VOCAB[theme].forEach(entry => {
       const he = entry[0], fr = entry[1], heVoc = entry[2] || null;
       const stat = storage.wordStats[he + '|' + fr];
       if (state.mode === 'review') {
-        if (isDifficult(stat)) state.pool.push({ he, fr, heVoc, theme });
+        if (isMissed(stat)) cands.push({ he, fr, heVoc, theme, w: 1 });
       } else {
-        // weight: difficult words appear 3x, normal 1x, mastered 0.3x
-        let weight = 1;
-        if (isDifficult(stat)) weight = 3;
-        else if (isMastered(stat)) weight = 0.3;
-        // we store weight by pushing multiple times (approximate)
-        const reps = Math.round(weight * 10);
-        for (let i = 0; i < reps; i++) state.pool.push({ he, fr, heVoc, theme });
+        let w = 1;
+        if (isDifficult(stat)) w = 3;
+        else if (isMastered(stat)) w = 0.3;
+        cands.push({ he, fr, heVoc, theme, w });
       }
     });
   });
+
+  const n = (state.seriesLength === 0)
+    ? cands.length
+    : Math.min(state.seriesLength, cands.length);
+
+  const rest = cands.slice();
+  const queue = [];
+  for (let i = 0; i < n && rest.length; i++) {
+    let tot = 0;
+    for (const c of rest) tot += c.w;
+    let r = Math.random() * tot, idx = rest.length - 1;
+    for (let j = 0; j < rest.length; j++) {
+      r -= rest[j].w;
+      if (r <= 0) { idx = j; break; }
+    }
+    queue.push(rest.splice(idx, 1)[0]);
+  }
+  state.pool = queue;
+  state.seriesTotal = queue.length;
 }
 
 function pickRandom() {
-  if (state.pool.length === 0) return null;
-  // try a few times to avoid repeating recent words
-  for (let i = 0; i < 8; i++) {
-    const w = state.pool[Math.floor(Math.random() * state.pool.length)];
-    const k = wordKey(w);
-    if (!state.recentlySeen.includes(k)) {
-      state.recentlySeen.push(k);
-      if (state.recentlySeen.length > Math.min(10, Math.floor(new Set(state.pool.map(wordKey)).size / 2))) {
-        state.recentlySeen.shift();
-      }
-      return w;
-    }
-  }
-  // fallback
-  return state.pool[Math.floor(Math.random() * state.pool.length)];
+  return state.pool.length ? state.pool.shift() : null;
 }
 
 function nextQuestion() {
   const word = pickRandom();
-  if (!word) return;
+  if (!word) { endSeries(); return; }
   state.current = word;
   state.revealed = false;
   state.questionNum++;
@@ -4810,6 +4910,7 @@ document.getElementById('correct-btn').addEventListener('click', () => {
 
 document.getElementById('wrong-btn').addEventListener('click', () => {
   state.wrong++; state.total++;
+  state.missed.push(state.current);
   updateWordStat(state.current, 'wrong');
   updateScore();
   nextQuestion();
@@ -4939,6 +5040,182 @@ refreshGlobalStatsDisplay();
   });
   render();
 })();
+
+
+/* ============================================
+   LONGUEUR DE SERIE / FIN DE SERIE / MOTS RATES
+   ============================================ */
+
+/* --- choix de la longueur --- */
+document.querySelectorAll('.len-btn').forEach(b => {
+  if (Number(b.dataset.len) === state.seriesLength) b.classList.add('active');
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.len-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.seriesLength = Number(b.dataset.len);
+    storage.preferences.seriesLength = state.seriesLength;
+    saveData();
+    updateStartBtn();
+  });
+});
+
+/* --- rendu d'une liste de mots rates --- */
+function renderMissedList(el, words, emptyMsg) {
+  if (!words.length) {
+    el.innerHTML = '<li class="missed-empty">' + emptyMsg + '</li>';
+    return;
+  }
+  el.innerHTML = words.map(w => {
+    const he = w.heVoc || w.he;
+    const extra = w.stat ? (w.stat.wrong + ' faux / ' + w.stat.seen + ' vus') : '';
+    return '<li><span class="word-he" dir="rtl">' + he + '</span>' +
+           '<span class="word-fr">' + w.fr + '</span>' +
+           '<span class="word-stat">' + extra + '</span></li>';
+  }).join('');
+}
+
+/* --- tous les mots rates, tous themes confondus --- */
+function allMissedWords() {
+  const out = [];
+  for (const theme in VOCAB) {
+    VOCAB[theme].forEach(entry => {
+      const he = entry[0], fr = entry[1], heVoc = entry[2] || null;
+      const stat = storage.wordStats[he + '|' + fr];
+      if (isMissed(stat)) out.push({ he, fr, heVoc, theme, stat });
+    });
+  }
+  out.sort((a, b) => b.stat.wrong - a.stat.wrong);
+  return out;
+}
+
+/* --- ecran de fin de serie --- */
+function endSeries() {
+  document.getElementById('quiz-view').style.display = 'none';
+  document.getElementById('series-end').style.display = 'block';
+
+  const done = state.total;
+  document.getElementById('series-score').textContent = state.correct + ' / ' + done;
+
+  const pct = done ? Math.round(state.correct / done * 100) : 0;
+  let msg;
+  if (done === 0) msg = 'Aucune réponse enregistrée.';
+  else if (pct >= 90) msg = 'מְצוּיָּן ! Excellent — ' + pct + '% de réussite.';
+  else if (pct >= 70) msg = 'כָּל הַכָּבוֹד ! Très bien — ' + pct + '% de réussite.';
+  else if (pct >= 50) msg = 'Pas mal — ' + pct + '% de réussite. Continue.';
+  else msg = pct + '% de réussite. Ces mots méritent un second tour.';
+  document.getElementById('series-msg').textContent = msg;
+
+  const wrap = document.getElementById('series-missed-wrap');
+  const list = document.getElementById('series-missed-list');
+  const btnReview = document.getElementById('series-review');
+  const toggle = document.getElementById('series-missed-toggle');
+
+  if (state.missed.length) {
+    wrap.style.display = 'block';
+    btnReview.style.display = 'inline-block';
+    btnReview.textContent = 'Rejouer les ' + state.missed.length + ' ratés';
+    const withStats = state.missed.map(w =>
+      Object.assign({}, w, { stat: storage.wordStats[w.he + '|' + w.fr] }));
+    renderMissedList(list, withStats, '');
+    list.style.display = 'none';
+    toggle.textContent = 'Voir les ' + state.missed.length + ' mots ratés ▾';
+  } else {
+    wrap.style.display = 'none';
+    btnReview.style.display = 'none';
+  }
+  refreshGlobalStatsDisplay();
+}
+
+document.getElementById('series-missed-toggle').addEventListener('click', () => {
+  const list = document.getElementById('series-missed-list');
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : 'block';
+  document.getElementById('series-missed-toggle').textContent =
+    (open ? 'Voir les ' : 'Masquer les ') + state.missed.length + ' mots ratés ' + (open ? '▾' : '▴');
+});
+
+document.getElementById('series-again').addEventListener('click', () => {
+  document.getElementById('start-btn').click();
+});
+
+document.getElementById('series-back').addEventListener('click', () => {
+  document.getElementById('series-end').style.display = 'none';
+  document.getElementById('setup-view').style.display = 'block';
+  updateStartBtn();
+});
+
+/* Rejouer uniquement les mots rates de la serie qui vient de finir */
+document.getElementById('series-review').addEventListener('click', () => {
+  const again = state.missed.slice();
+  state.correct = 0; state.wrong = 0; state.total = 0; state.questionNum = 0;
+  state.missed = [];
+  state.pool = again;
+  state.seriesTotal = again.length;
+  updateScore();
+  document.getElementById('series-end').style.display = 'none';
+  document.getElementById('setup-view').style.display = 'none';
+  document.getElementById('quiz-view').style.display = 'block';
+  nextQuestion();
+});
+
+/* --- carte "Mes mots rates" dans l'onglet Stats --- */
+function refreshMissedCard() {
+  const words = allMissedWords();
+  const intro = document.getElementById('missed-intro');
+  const btnT = document.getElementById('missed-toggle');
+  const btnQ = document.getElementById('missed-quiz');
+  const list = document.getElementById('missed-list');
+
+  if (!words.length) {
+    intro.textContent = "Tu n'as encore raté aucun mot — lance un quiz !";
+    btnT.style.display = 'none';
+    btnQ.style.display = 'none';
+    list.style.display = 'none';
+    return;
+  }
+  intro.textContent = words.length + ' mot' + (words.length > 1 ? 's' : '') +
+    ' raté' + (words.length > 1 ? 's' : '') + ' au moins une fois, toutes catégories confondues.';
+  btnT.style.display = 'inline-block';
+  btnQ.style.display = 'inline-block';
+  btnQ.textContent = 'Quiz sur ces ' + words.length + ' mots';
+  if (list.style.display !== 'none') renderMissedList(list, words, '');
+}
+
+document.getElementById('missed-toggle').addEventListener('click', () => {
+  const list = document.getElementById('missed-list');
+  const btn = document.getElementById('missed-toggle');
+  if (list.style.display === 'none') {
+    renderMissedList(list, allMissedWords(), '');
+    list.style.display = 'block';
+    btn.textContent = 'Masquer la liste';
+  } else {
+    list.style.display = 'none';
+    btn.textContent = 'Voir la liste';
+  }
+});
+
+/* Quiz portant uniquement sur les mots rates, tous themes confondus */
+document.getElementById('missed-quiz').addEventListener('click', () => {
+  const words = allMissedWords();
+  if (!words.length) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.tab[data-tab="quiz"]').classList.add('active');
+  document.getElementById('panel-quiz').classList.add('active');
+
+  state.correct = 0; state.wrong = 0; state.total = 0; state.questionNum = 0;
+  state.missed = [];
+  const n = state.seriesLength === 0 ? words.length : Math.min(state.seriesLength, words.length);
+  state.pool = words.sort(() => Math.random() - 0.5).slice(0, n);
+  state.seriesTotal = state.pool.length;
+  updateScore();
+  document.getElementById('series-end').style.display = 'none';
+  document.getElementById('setup-view').style.display = 'none';
+  document.getElementById('quiz-view').style.display = 'block';
+  nextQuestion();
+});
+
+refreshMissedCard();
 
 </script>
 

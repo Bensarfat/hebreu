@@ -146,7 +146,7 @@
     transition: all 0.2s;
     text-align: center;
   }
-  .mode-btn:hover { border-color: var(--accent); color: var(--ink); }
+  .mode-btn:not(.active):hover { border-color: var(--accent); color: var(--ink); }
   .mode-btn.active {
     background: var(--ink);
     color: var(--paper);
@@ -178,7 +178,7 @@
     transition: all 0.15s;
     user-select: none;
   }
-  .theme-chip:hover { border-color: var(--accent-soft); }
+  .theme-chip:not(.checked):hover { border-color: var(--accent-soft); }
   .theme-chip.checked {
     background: var(--ink);
     color: var(--paper);
@@ -684,8 +684,8 @@
     color: var(--on-accent);
     border-color: var(--accent);
   }
-  .mode-btn:hover { border-color: var(--accent); color: var(--ink); }
-  .theme-chip:hover { border-color: var(--accent-soft); }
+  .mode-btn:not(.active):hover { border-color: var(--accent); color: var(--ink); }
+  .theme-chip:not(.checked):hover { border-color: var(--accent-soft); }
 
   .btn { border-color: var(--line); color: var(--ink); }
   .btn:hover,
@@ -728,9 +728,15 @@
 
   /* Sur blanc, les survols en var(--bg) seraient invisibles */
   .grammar-header:hover { background: #f5f6f9; }
-  .theme-chip:hover { background: #f5f6f9; }
-  .mode-btn:hover { background: #f5f6f9; }
+  .theme-chip:not(.checked):hover { background: #f5f6f9; }
+  .mode-btn:not(.active):hover { background: #f5f6f9; }
   ::-webkit-scrollbar-track { background: #f2f2f5; }
+
+
+  /* Survol des elements deja selectionnes : on garde le bleu, on l'eclaircit */
+  .theme-chip.checked:hover,
+  .mode-btn.active:hover,
+  .dir-btn.active:hover { filter: brightness(1.15); }
 
 </style>
 </head>
@@ -4583,6 +4589,10 @@ document.querySelectorAll('.dir-btn').forEach(b => {
 
 /* Themes */
 const themesGrid = document.getElementById('themes-grid');
+/* Les 41 puces presentes en dur dans le HTML sont regenerees ci-dessous :
+   sans ce vidage elles apparaissaient en double, et les statiques n'avaient
+   pas d'ecouteur de clic — cliquer dessus ne selectionnait donc rien. */
+themesGrid.innerHTML = '';
 Object.entries(VOCAB).forEach(([theme, items]) => {
   const chip = document.createElement('div');
   chip.className = 'theme-chip' + (state.selectedThemes.has(theme) ? ' checked' : '');

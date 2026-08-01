@@ -6,31 +6,34 @@
 <title>Quiz d'Hébreu · קויז עברית</title>
 <style>
   :root {
-    --bg: #f4ede0;
-    --paper: #faf5e9;
-    --ink: #1a1a2e;
-    --ink-soft: #3d3d52;
-    --muted: #8a8276;
-    --line: #d9cdb4;
-    --accent: #b8463a;
-    --accent-soft: #d97157;
-    --olive: #6b7a3a;
-    --gold: #b8893a;
+    --bg: #0f1220;
+    --paper: #191d31;
+    --ink: #eef1f8;
+    --ink-soft: #c3cade;
+    --muted: #9aa3c0;
+    --line: #2c324e;
+    --accent: #6c8cff;
+    --accent-soft: #8aa4ff;
+    --olive: #39d98a;
+    --gold: #ffcf6b;
     --rose: #d4a59a;
-    --shadow: rgba(60, 40, 20, 0.08);
+    --he: #ffe08a;
+    --bad: #ff6b7a;
+    --on-accent: #ffffff;
+    --shadow: rgba(0, 0, 0, 0.45);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     background: var(--bg);
     color: var(--ink);
-    font-family: Georgia, 'Times New Roman', serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     min-height: 100vh;
     line-height: 1.6;
   }
   body {
     background-image:
-      radial-gradient(at 20% 10%, rgba(184, 70, 58, 0.04) 0%, transparent 50%),
-      radial-gradient(at 80% 90%, rgba(107, 122, 58, 0.05) 0%, transparent 50%);
+      radial-gradient(at 20% 10%, rgba(108, 140, 255, 0.10) 0%, transparent 55%),
+      radial-gradient(at 80% 90%, rgba(138, 108, 255, 0.09) 0%, transparent 55%);
   }
   .container {
     max-width: 780px;
@@ -491,7 +494,7 @@
   /* COURS PANEL */
   .cours-search {
     width: 100%; padding: 14px 18px;
-    font-family: Georgia, 'Times New Roman', serif; font-size: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px;
     background: var(--paper); border: 1px solid var(--line); color: var(--ink);
     box-shadow: 0 1px 2px var(--shadow);
   }
@@ -656,6 +659,72 @@
     .setup-card { padding: 20px 16px; }
     .mode-btn { min-width: 100px; padding: 12px 8px; }
   }
+
+  /* ============================================================
+     THEME SOMBRE BLEU — surcharges
+     Le fichier etait deja pilote par variables : on redefinit la
+     palette ci-dessus, et on traite ici les 3 roles que --accent
+     cumulait (hebreu / interface / erreur) + les etats "inverses".
+     ============================================================ */
+
+  /* Hebreu en ambre : ressort mieux que le bleu sur fond sombre */
+  h1 .he,
+  .quiz-word.hebrew,
+  .grammar-title .he,
+  .grammar-content .he-inline,
+  .grammar-content .he-cell,
+  .difficult-list .word-he,
+  .answer-voc,
+  .cours-he { color: var(--he); }
+
+  /* Etats selectionnes : bleu plein, au lieu d'un bloc blanc */
+  .mode-btn.active,
+  .theme-chip.checked {
+    background: var(--accent);
+    color: var(--on-accent);
+    border-color: var(--accent);
+  }
+  .mode-btn:hover { border-color: var(--accent); color: var(--ink); }
+  .theme-chip:hover { border-color: var(--accent-soft); }
+
+  .btn { border-color: var(--line); color: var(--ink); }
+  .btn:hover,
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .btn.primary:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+
+  .start-btn {
+    background: linear-gradient(135deg, var(--accent), #8a6cff);
+    color: var(--on-accent);
+    border-radius: 2px;
+  }
+  .start-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent), #8a6cff);
+    filter: brightness(1.12);
+  }
+  .start-btn:disabled { background: var(--line); color: var(--muted); }
+
+  /* Reussite / erreur : vert et rouge, jamais la couleur d'accent */
+  .btn.correct { border-color: var(--olive); color: var(--olive); }
+  .btn.correct:hover { background: var(--olive); color: #0f1220; border-color: var(--olive); }
+  .btn.wrong { border-color: var(--bad); color: var(--bad); }
+  .btn.wrong:hover { background: var(--bad); color: var(--on-accent); border-color: var(--bad); }
+  .score-wrong strong { color: var(--bad); }
+  .stat-box.red .num { color: var(--bad); }
+  .quiz-meta .word-stats.difficult { color: var(--gold); }
+  .danger-btn { color: var(--bad); border-color: var(--bad); }
+  .danger-btn:hover { background: var(--bad); color: var(--on-accent); }
+
+  /* Onglet Cours */
+  .cours-search { font-family: inherit; }
+  .cours-tbl tr:nth-child(even) { background: rgba(255, 255, 255, 0.025); }
+  .cours-tbl mark { background: rgba(108, 140, 255, 0.32); color: var(--ink); }
+
+  ::selection { background: rgba(108, 140, 255, 0.35); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
 </style>
 </head>
 <body>
@@ -4740,6 +4809,10 @@ function updateScore() {
 
 /* GRAMMAR list */
 const grammarList = document.getElementById('grammar-list');
+/* Les 47 sections presentes en dur dans le HTML sont regenerees ci-dessous :
+   sans ce vidage elles apparaissaient en double, et les statiques n'avaient
+   pas d'ecouteur de clic (elles ne s'ouvraient donc jamais). */
+grammarList.innerHTML = '';
 GRAMMAR_CATEGORIES.forEach(cat => {
   const catHeader = document.createElement('div');
   catHeader.className = 'grammar-category';

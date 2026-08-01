@@ -798,6 +798,45 @@
     font-size: 15px; color: var(--gold); opacity: 0.95;
   }
 
+
+  /* ============================================================
+     CARTE DE QUIZ CLIQUABLE + POUCES
+     ============================================================ */
+  /* uniquement la carte du quiz : l'ecran de fin de serie reutilise .quiz-card */
+  #quiz-view .quiz-card { cursor: pointer; transition: box-shadow .18s, transform .18s; user-select: none; }
+  #quiz-view .quiz-card:hover { box-shadow: 0 4px 18px var(--shadow); }
+  #quiz-view .quiz-card:active { transform: scale(0.997); }
+  #quiz-view .quiz-card.revealed { cursor: default; }
+  #quiz-view .quiz-card.revealed:hover { box-shadow: 0 1px 3px var(--shadow); }
+  #quiz-view .quiz-card.revealed:active { transform: none; }
+
+  .tap-hint {
+    font-size: 12px; color: var(--muted); letter-spacing: 1.5px;
+    text-transform: uppercase; animation: hintPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes hintPulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+
+  .judge-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    padding: 15px 34px; cursor: pointer; background: transparent;
+    border: 2px solid var(--line); border-radius: 14px;
+    font-family: inherit; font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted);
+    transition: all .15s;
+  }
+  .judge-btn svg { width: 34px; height: 34px; display: block; }
+  .judge-up { color: var(--olive); border-color: var(--olive); }
+  .judge-up:hover { background: var(--olive); color: var(--on-accent); }
+  .judge-down { color: var(--bad); border-color: var(--bad); }
+  .judge-down:hover { background: var(--bad); color: var(--on-accent); }
+  .judge-btn:active { transform: translateY(1px); }
+  #actions-judge { gap: 18px; margin-top: 22px; }
+
+  @media (max-width: 600px) {
+    .judge-btn { padding: 13px 26px; }
+    .judge-btn svg { width: 30px; height: 30px; }
+  }
+
 </style>
 </head>
 <body>
@@ -878,13 +917,15 @@
         <div class="quiz-word" id="quiz-word">—</div>
         <div class="answer-zone empty" id="answer-zone"></div>
         <div class="actions" id="actions-reveal">
-          <button class="btn primary" id="reveal-btn">Révéler la réponse</button>
-          <button class="btn" id="skip-btn">Passer</button>
+          <span class="tap-hint">Clique sur la carte pour voir la réponse</span>
         </div>
         <div class="actions" id="actions-judge" style="display:none;">
-          <button class="btn correct" id="correct-btn">J'avais juste</button>
-          <button class="btn wrong" id="wrong-btn">J'avais faux</button>
-          <button class="btn primary" id="next-btn">Suivant →</button>
+          <button class="judge-btn judge-up" id="correct-btn" title="J'avais juste" aria-label="J'avais juste">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg><span>J'avais juste</span>
+          </button>
+          <button class="judge-btn judge-down" id="wrong-btn" title="J'avais faux" aria-label="J'avais faux">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg><span>J'avais faux</span>
+          </button>
         </div>
       </div>
       <div class="score-bar">
@@ -5024,6 +5065,7 @@ function nextQuestion() {
 
   document.getElementById('actions-reveal').style.display = 'flex';
   document.getElementById('actions-judge').style.display = 'none';
+  document.querySelector('#quiz-view .quiz-card').classList.remove('revealed');
 }
 
 function reveal() {
@@ -5053,9 +5095,15 @@ function reveal() {
 
   document.getElementById('actions-reveal').style.display = 'none';
   document.getElementById('actions-judge').style.display = 'flex';
+  document.querySelector('#quiz-view .quiz-card').classList.add('revealed');
 }
 
-document.getElementById('reveal-btn').addEventListener('click', reveal);
+/* Toute la carte est cliquable : reveal() ressort immediatement si la
+   reponse est deja affichee, donc un second clic ne fait rien. */
+document.querySelector('#quiz-view .quiz-card').addEventListener('click', e => {
+  if (e.target.closest('.judge-btn')) return;
+  reveal();
+});
 // Touches clavier : Espace ou Entrée pour révéler la réponse
 document.addEventListener('keydown', e => {
   if (document.getElementById('quiz-view').style.display === 'none') return;
@@ -5064,13 +5112,13 @@ document.addEventListener('keydown', e => {
       e.preventDefault();
       reveal();
     }
+    return;
   }
-});
-
-document.getElementById('skip-btn').addEventListener('click', () => {
-  state.total++;
-  updateScore();
-  nextQuestion();
+  /* une fois la reponse affichee : fleche haut = juste, fleche bas = faux */
+  if (state.revealed) {
+    if (e.key === 'ArrowUp')   { e.preventDefault(); document.getElementById('correct-btn').click(); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); document.getElementById('wrong-btn').click(); }
+  }
 });
 
 document.getElementById('correct-btn').addEventListener('click', () => {
@@ -5087,8 +5135,6 @@ document.getElementById('wrong-btn').addEventListener('click', () => {
   updateScore();
   nextQuestion();
 });
-
-document.getElementById('next-btn').addEventListener('click', nextQuestion);
 
 function updateScore() {
   document.getElementById('score-c').textContent = state.correct;

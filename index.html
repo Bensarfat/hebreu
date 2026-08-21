@@ -1054,6 +1054,38 @@
   #panel-tenses header.top { position: static; backdrop-filter: none; }
   #panel-tenses .hero { padding-top: 8px; }
 
+
+  /* ============================================================
+     LEXIQUE — masquage d'une colonne pour s'entrainer
+     ============================================================ */
+  .cours-sec > summary { gap: 10px; }
+  .cours-name { flex: none; }
+  .cours-tools { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+  /* les options n'apparaissent qu'une fois la categorie ouverte */
+  .cours-sec:not([open]) .cours-tools { display: none; }
+  .mask-btn {
+    padding: 5px 11px; cursor: pointer; white-space: nowrap;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 20px;
+    font-family: inherit; font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); transition: all .15s;
+  }
+  .mask-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mask-btn.on {
+    background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+  }
+  .cours-sec.hide-he .cours-he:not(.shown),
+  .cours-sec.hide-fr .cours-fr:not(.shown) {
+    filter: blur(6px); cursor: pointer; user-select: none;
+  }
+  .cours-sec.hide-he .cours-he:not(.shown):hover,
+  .cours-sec.hide-fr .cours-fr:not(.shown):hover { filter: blur(2.5px); }
+  .cours-sec.hide-he .cours-he.shown,
+  .cours-sec.hide-fr .cours-fr.shown { cursor: pointer; }
+  @media (max-width: 700px) {
+    .cours-tools { width: 100%; margin: 6px 0 0; }
+    .mask-btn { font-size: 9px; padding: 5px 9px; }
+  }
+
 </style>
 </head>
 <body>
@@ -6780,6 +6812,10 @@ refreshGlobalStatsDisplay();
            '</mark>' + esc(txt.slice(i + q.length));
   }
 
+  /* Masquage par theme : 'he', 'fr' ou null. Conserve hors du rendu
+     pour survivre a une recherche ou a un repli/depli. */
+  var masks = {};
+
   function render() {
     var raw = search.value.trim();
     var q = strip(raw).toLowerCase();
@@ -6797,9 +6833,17 @@ refreshGlobalStatsDisplay();
       }
       if (!rows.length) return;
       shown += rows.length;
-      html += '<details class="cours-sec"' + (q ? ' open' : '') +
-              '><summary><span>' + esc(theme) + '</span><span class="c">' +
-              rows.length + ' mots</span></summary>' +
+      var mk = masks[theme] || '';
+      html += '<details class="cours-sec' + (mk ? ' hide-' + mk : '') + '"' +
+              (q ? ' open' : '') + ' data-theme="' + esc(theme) + '">' +
+              '<summary><span class="cours-name">' + esc(theme) + '</span>' +
+              '<span class="cours-tools">' +
+                '<button type="button" class="mask-btn' + (mk === 'he' ? ' on' : '') +
+                  '" data-mask="he">Masquer l\'hébreu</button>' +
+                '<button type="button" class="mask-btn' + (mk === 'fr' ? ' on' : '') +
+                  '" data-mask="fr">Masquer le français</button>' +
+              '</span>' +
+              '<span class="c">' + rows.length + ' mots</span></summary>' +
               '<table class="cours-tbl"><tbody>' +
               rows.map(function (e) {
                 var pr = VERB_PRESENT[e[2]] || VERB_PRESENT[e[0]];
@@ -6816,6 +6860,35 @@ refreshGlobalStatsDisplay();
       ? shown + ' mot' + (shown > 1 ? 's' : '') + ' trouvé' + (shown > 1 ? 's' : '')
       : total + ' mots au total';
   }
+
+  /* Les boutons vivent dans le <summary> : sans preventDefault, le clic
+     replierait la categorie qu'on veut justement garder ouverte. */
+  list.addEventListener('click', function (e) {
+    var btn = e.target.closest('.mask-btn');
+    if (btn) {
+      e.preventDefault();
+      e.stopPropagation();
+      var sec = btn.closest('.cours-sec');
+      var theme = sec.dataset.theme;
+      var want = btn.dataset.mask;
+      masks[theme] = (masks[theme] === want) ? null : want;   // second clic = on demasque
+      sec.classList.toggle('hide-he', masks[theme] === 'he');
+      sec.classList.toggle('hide-fr', masks[theme] === 'fr');
+      sec.querySelectorAll('.mask-btn').forEach(function (b) {
+        b.classList.toggle('on', b.dataset.mask === masks[theme]);
+      });
+      sec.querySelectorAll('.shown').forEach(function (c) { c.classList.remove('shown'); });
+      return;
+    }
+    /* un mot masque se devoile a l'unite */
+    var cell = e.target.closest('.cours-he, .cours-fr');
+    if (!cell) return;
+    var s = cell.closest('.cours-sec');
+    if (!s) return;
+    var masked = (s.classList.contains('hide-he') && cell.classList.contains('cours-he')) ||
+                 (s.classList.contains('hide-fr') && cell.classList.contains('cours-fr'));
+    if (masked) cell.classList.toggle('shown');
+  });
 
   search.addEventListener('input', render);
   document.getElementById('cours-open').addEventListener('click', function () {

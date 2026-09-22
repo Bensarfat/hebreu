@@ -1113,6 +1113,11 @@
   .flash-pres { direction: rtl; font-size: 17px; color: var(--gold); }
   .flash-sep { width: 46px; border-top: 1px solid var(--line); }
   .flash-hint { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .flash-key {
+    display: inline-block; margin-left: 7px; padding: 1px 6px;
+    border: 1px solid currentColor; border-radius: 4px; opacity: .65;
+    font-size: 10px; line-height: 1.5; vertical-align: 1px;
+  }
   .flash-acts { display: flex; gap: 10px; margin-top: 16px; }
   .flash-acts .btn { flex: 1; }
   .flash-bar { height: 3px; background: var(--line); border-radius: 3px; margin: 16px 0 0; overflow: hidden; }
@@ -2507,6 +2512,7 @@
     <div class="cours-views" id="cours-views">
       <button type="button" class="view-btn on" data-view="theme">Par th&egrave;me</button>
       <button type="button" class="view-btn" data-view="nature">Par nature</button>
+      <button type="button" class="view-btn" data-view="revoir">&Agrave; revoir</button>
     </div>
     <input class="cours-search" id="cours-search" autocomplete="off"
            placeholder="Rechercher un mot en français ou en hébreu…">
@@ -3870,6 +3876,7 @@ Formes vocalisées selon la norme de l'Académie de la langue hébraïque&nbsp;;
       <div class="missed-actions">
         <button class="btn" id="missed-toggle">Voir la liste</button>
         <button class="btn primary" id="missed-quiz">Quiz sur ces mots</button>
+        <button class="btn" id="missed-flash">Flashcards sur ces mots</button>
       </div>
       <ul class="difficult-list" id="missed-list" style="display:none;"></ul>
     </div>
@@ -3885,7 +3892,12 @@ Formes vocalisées selon la norme de l'Académie de la langue hébraïque&nbsp;;
       <div style="font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 14px;">
         Compteur propre aux flashcards : il n'entre pas dans les statistiques du quiz à choix multiples ci-dessus.
       </div>
-      <ul class="difficult-list" id="flash-list"><li style="color: var(--muted); justify-content: center; font-style: italic;">Aucune carte révisée pour l'instant — ouvre l'onglet Cours et lance une série.</li></ul>
+      <p class="missed-intro" id="flash-intro">—</p>
+      <div class="missed-actions">
+        <button class="btn" id="flash-toggle">Voir la liste</button>
+        <button class="btn primary" id="flash-redo">Flashcards sur ces mots</button>
+      </div>
+      <ul class="difficult-list" id="flash-list" style="display:none;"></ul>
       <div class="missed-actions" style="margin-top:14px">
         <button class="btn" id="reset-flash">Effacer mes stats de flashcards</button>
       </div>
@@ -6966,7 +6978,32 @@ refreshGlobalStatsDisplay();
   /* Renvoie les sections a afficher, selon la vue. En vue 'nature' un mot
      present dans deux themes n'est liste qu'une fois, et chaque liste est
      classee alphabetiquement sur le francais. */
+  /* mot a revoir = plus de ratees que de reussites, en flashcards OU au quiz */
+  function toReview(e) {
+    var k = e[0] + '|' + e[1];
+    if (typeof isExcludedKey === 'function' && isExcludedKey(k)) return false;
+    var f = (typeof storage !== 'undefined' && storage.flash) ? storage.flash[k] : null;
+    if (f && f.again > f.known) return true;
+    var s = (typeof storage !== 'undefined' && storage.wordStats) ? storage.wordStats[k] : null;
+    if (s && s.wrong > s.correct) return true;
+    return false;
+  }
+
   function groups() {
+    if (view === 'revoir') {
+      var out = [], vu = {};
+      Object.keys(VOCAB).forEach(function (t) {
+        (VOCAB[t] || []).forEach(function (e) {
+          var k = e[0] + '|' + e[1];
+          if (vu[k] || !toReview(e)) return;
+          vu[k] = 1; out.push(e);
+        });
+      });
+      out.sort(function (a, b) {
+        return String(a[1]).localeCompare(String(b[1]), 'fr', { sensitivity: 'base' });
+      });
+      return out.length ? [{ name: '\u00c0 revoir', rows: out }] : [];
+    }
     if (view === 'theme') {
       return Object.keys(VOCAB).map(function (t) {
         return { name: t, rows: VOCAB[t] || [] };
@@ -7025,7 +7062,7 @@ refreshGlobalStatsDisplay();
                   '" data-mask="fr">Masquer le français</button>' +
               '</span>' +
               '<button type="button" class="flash-btn" data-flash="1">Flashcards</button>' +
-              '<span class="c">' + rows.length + ' mots</span></summary>' +
+              '<span class="c">' + rows.length + ' mot' + (rows.length > 1 ? 's' : '') + '</span></summary>' +
               '<table class="cours-tbl"><tbody>' +
               rows.map(function (e) {
                 var pr = VERB_PRESENT[e[2]] || VERB_PRESENT[e[0]];
@@ -7036,8 +7073,9 @@ refreshGlobalStatsDisplay();
               '</tbody></table></details>';
     });
 
-    list.innerHTML = html ||
-      '<div class="cours-empty">Aucun mot ne correspond à &laquo;&nbsp;' + esc(raw) + '&nbsp;&raquo;</div>';
+    list.innerHTML = html || (view === 'revoir' && !q
+      ? '<div class="cours-empty">Aucun mot à revoir pour l\'instant. Un mot arrive ici dès qu\'il est raté plus souvent que réussi, en flashcards ou au quiz.</div>'
+      : '<div class="cours-empty">Aucun mot ne correspond à &laquo;&nbsp;' + esc(raw) + '&nbsp;&raquo;</div>');
     countEl.textContent = q
       ? shown + ' mot' + (shown > 1 ? 's' : '') + ' trouvé' + (shown > 1 ? 's' : '')
       : total + ' mots au total';
@@ -7172,12 +7210,12 @@ refreshGlobalStatsDisplay();
     var back = face === 'fr' ? heBlock : frBlock;
     return '<div class="flash-card" id="flash-card">' + front +
       (showBack ? '<div class="flash-sep"></div>' + back
-                : '<div class="flash-hint">Clique ou barre d\'espace pour retourner</div>') +
+                : '<div class="flash-hint">Clique ou barre d\'espace pour retourner &middot; puis A = je savais, P = &agrave; revoir</div>') +
       '</div>' +
       (showBack
         ? '<div class="flash-acts">' +
-            '<button class="btn" data-ans="0">&larr; &Agrave; revoir</button>' +
-            '<button class="btn primary" data-ans="1">Je savais &rarr;</button>' +
+            '<button class="btn" data-ans="0">&Agrave; revoir <span class="flash-key">P</span></button>' +
+            '<button class="btn primary" data-ans="1">Je savais <span class="flash-key">A</span></button>' +
           '</div>'
         : '<div class="flash-acts"><button class="btn primary" data-flip="1">Retourner</button></div>');
   }
@@ -7200,7 +7238,9 @@ refreshGlobalStatsDisplay();
         '<p>' + pct + '&nbsp;% de cartes sues' +
           (again.length ? ' &middot; ' + again.length + ' à revoir' : ' — série parfaite !') + '</p>' +
         '<div class="flash-acts">' +
-          (again.length ? '<button class="btn primary" data-redo="again">Revoir les ' + again.length + ' ratées</button>' : '') +
+          (again.length ? '<button class="btn primary" data-redo="again">' +
+            (again.length > 1 ? 'Revoir les ' + again.length + ' ratées' : 'Revoir la carte ratée') +
+            '</button>' : '') +
           '<button class="btn" data-redo="all">Tout recommencer</button>' +
           '<button class="btn" data-close="1">Fermer</button>' +
         '</div>' +
@@ -7230,6 +7270,20 @@ refreshGlobalStatsDisplay();
     if (typeof window.refreshFlashStats === 'function') window.refreshFlashStats();
   }
   window.openFlash = open;
+
+  /* Ouvre une serie a partir d'une liste de cles "he|fr" (stats, mots rates...) */
+  window.openFlashKeys = function (keys, name) {
+    var want = {}, rows = [], vu = {};
+    keys.forEach(function (k) { want[k] = 1; });
+    Object.keys(VOCAB).forEach(function (t) {
+      (VOCAB[t] || []).forEach(function (e) {
+        var k = e[0] + '|' + e[1];
+        if (want[k] && !vu[k]) { vu[k] = 1; rows.push(e); }
+      });
+    });
+    if (rows.length) open(name || 'À revoir', rows);
+    return rows.length;
+  };
 
   /* --- interactions --- */
   ov.addEventListener('click', function (e) {
@@ -7265,8 +7319,10 @@ refreshGlobalStatsDisplay();
     if (pos >= deck.length) return;
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipped = !flipped; return draw(); }
     if (!flipped) return;
-    if (e.key === 'ArrowRight') { e.preventDefault(); answer(true); }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); answer(false); }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = (e.key || '').toLowerCase();
+    if (k === 'a' || e.key === 'ArrowRight') { e.preventDefault(); return answer(true); }
+    if (k === 'p' || e.key === 'ArrowLeft') { e.preventDefault(); return answer(false); }
   });
 
   /* etat initial du selecteur de sens */
@@ -7289,21 +7345,47 @@ refreshGlobalStatsDisplay();
     set('fs-seen', seen); set('fs-known', known); set('fs-again', ag);
     set('fs-rate', seen ? Math.round(100 * known / seen) + '%' : '—');
     var ul = document.getElementById('flash-list');
+    var intro = document.getElementById('flash-intro');
+    var bt = document.getElementById('flash-toggle');
+    var br = document.getElementById('flash-redo');
     if (!ul) return;
+    worst.sort(function (a, b) { return (b.s.again - b.s.known) - (a.s.again - a.s.known) || b.s.again - a.s.again; });
+    flashWorstKeys = worst.map(function (w) { return w.k; });
     if (!worst.length) {
-      ul.innerHTML = '<li style="color: var(--muted); justify-content: center; font-style: italic;">' +
-        (seen ? 'Aucune carte ratée — tout est su.' : "Aucune carte révisée pour l'instant — ouvre l'onglet Cours et lance une série.") + '</li>';
+      if (intro) intro.textContent = seen
+        ? 'Aucune carte ratée — tout est su pour le moment.'
+        : "Aucune carte révisée pour l'instant — ouvre l'onglet Cours et lance une série.";
+      if (bt) bt.style.display = 'none';
+      if (br) br.style.display = 'none';
+      ul.style.display = 'none';
+      ul.innerHTML = '';
       return;
     }
-    worst.sort(function (a, b) { return b.s.again - a.s.again; });
-    ul.innerHTML = worst.slice(0, 15).map(function (w) {
+    if (intro) intro.textContent = worst.length + ' carte' + (worst.length > 1 ? 's' : '') +
+      ' ratée' + (worst.length > 1 ? 's' : '') + ' au moins une fois. Les plus fragiles d\'abord.';
+    if (bt) bt.style.display = 'inline-block';
+    if (br) br.style.display = 'inline-block';
+    ul.innerHTML = worst.map(function (w) {
       var p = w.k.split('|');
       return '<li><span class="word-he">' + esc(p[0]) + '</span>' +
              '<span class="word-fr">' + esc(p[1]) + '</span>' +
              '<span class="word-stat">' + w.s.again + ' ratée' + (w.s.again > 1 ? 's' : '') +
-             ' / ' + w.s.seen + '</span></li>';
+             ' / ' + w.s.seen + ' vue' + (w.s.seen > 1 ? 's' : '') + '</span></li>';
     }).join('');
   };
+
+  var flashWorstKeys = [];
+  var ft = document.getElementById('flash-toggle');
+  if (ft) ft.addEventListener('click', function () {
+    var ul = document.getElementById('flash-list');
+    var open_ = ul.style.display === 'none';
+    ul.style.display = open_ ? 'block' : 'none';
+    ft.textContent = open_ ? 'Masquer la liste' : 'Voir la liste';
+  });
+  var fr_ = document.getElementById('flash-redo');
+  if (fr_) fr_.addEventListener('click', function () {
+    window.openFlashKeys(flashWorstKeys, 'Cartes à revoir');
+  });
   window.refreshFlashStats();
 
   var rf = document.getElementById('reset-flash');
@@ -7445,12 +7527,16 @@ function refreshMissedCard() {
     intro.textContent = "Tu n'as encore raté aucun mot — lance un quiz !";
     btnT.style.display = 'none';
     btnQ.style.display = 'none';
+    var bf0 = document.getElementById('missed-flash');
+    if (bf0) bf0.style.display = 'none';
     list.style.display = 'none';
     return;
   }
   intro.textContent = words.length + ' mot' + (words.length > 1 ? 's' : '') +
     ' raté' + (words.length > 1 ? 's' : '') + ' au moins une fois, toutes catégories confondues.';
   btnT.style.display = 'inline-block';
+  var bf1 = document.getElementById('missed-flash');
+  if (bf1) bf1.style.display = 'inline-block';
   btnQ.style.display = 'inline-block';
   btnQ.textContent = 'Quiz sur ces ' + words.length + ' mots';
   if (list.style.display !== 'none') renderMissedList(list, words, '');
@@ -7470,6 +7556,12 @@ document.getElementById('missed-toggle').addEventListener('click', () => {
 });
 
 /* Quiz portant uniquement sur les mots rates, tous themes confondus */
+const missedFlashBtn = document.getElementById('missed-flash');
+if (missedFlashBtn) missedFlashBtn.addEventListener('click', () => {
+  const keys = allMissedWords().map(w => w.he + '|' + w.fr);
+  if (typeof window.openFlashKeys === 'function') window.openFlashKeys(keys, 'Mots ratés au quiz');
+});
+
 document.getElementById('missed-quiz').addEventListener('click', () => {
   const words = allMissedWords();
   if (!words.length) return;

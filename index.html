@@ -1056,6 +1056,19 @@
 
 
   /* ============================================================
+     LEXIQUE — vues : par theme / par nature grammaticale
+     ============================================================ */
+  .cours-views { display: flex; gap: 8px; margin: 0 0 14px; flex-wrap: wrap; }
+  .view-btn {
+    padding: 8px 16px; cursor: pointer; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 20px; font-family: inherit;
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--muted); transition: all .15s;
+  }
+  .view-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .view-btn.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  /* ============================================================
      LEXIQUE — masquage d'une colonne pour s'entrainer
      ============================================================ */
   .cours-sec > summary { gap: 10px; }
@@ -2418,6 +2431,10 @@
   <!-- ================ STATS PANEL ================ -->
   <!-- ================ COURS PANEL ================ -->
   <div class="panel" id="panel-cours">
+    <div class="cours-views" id="cours-views">
+      <button type="button" class="view-btn on" data-view="theme">Par th&egrave;me</button>
+      <button type="button" class="view-btn" data-view="nature">Par nature</button>
+    </div>
     <input class="cours-search" id="cours-search" autocomplete="off"
            placeholder="Rechercher un mot en français ou en hébreu…">
     <div class="cours-bar">
@@ -4908,6 +4925,11 @@ const VOCAB = {
   ]
 };
 
+/* Nature grammaticale de chaque entree, dans l ordre de VOCAB :
+   v=verbe n=nom a=adjectif d=adverbe o=mot-outil c=nombre x=expression */
+const NATURE = {"Bases & pronoms": "xxxxoooooooooooooooooooooooooooooooooooooodoodo","Temps & fréquence": "ddddddddddddnnnnnnnnnnnoooddooodn","Famille": "nnnnnnnnnnnnnnnnnnnnnnnnn","Personnes & âges": "nnnnnnnaannnnn","Corps": "nnnnnnnnnnnnnnnnnnnnnnnnn","Santé & médecine (base)": "nnnnnnnnnnnnnnnnnnann","Médecine (avancé)": "nnnnxnnnnvnnannaannnnannnannnnvvaa","Maison & meubles": "nnnnnnnnnnnnnnnnnnnnnnnn","Nourriture & repas": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Restaurant & café": "nnnnnnnnnnnnnnnn","Vêtements": "nnnnnnnnnnnnnnnnnnnnnn","Couleurs": "aaaaaaaaaaa","Adjectifs": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","Verbes (infinitif)": "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv","Verbes au présent (conjugaison)": "vvvvvvvvvvvvvvvvvvvvvvv","Verbes Nif'al (réflexifs/passifs)": "vvvvvvvvvvvvv","Verbes Hitpa'el (réfléchis)": "vvvvvvvvvvvvvv","Magasins & ville": "nnnnnnnnnnnnnnnnnnnnnnn","Météo & saisons": "nnnnnnnnnnnnnnaaaa","Géographie & directions": "nnnnddddddddddddddnnnnnnnnnnn","Transports": "nnnnnnnnnnnd","Travail & emploi": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Histoire & sionisme": "nnnnnaaannannnnnnnnnnannnnnnnnaanaan","Société & identité": "nnnnnnnnnnnaannaannnnaannnaannn","Verbes (cours 40-42)": "vvvvvvvvvvvvvvvvvvvvvvvvvv","Expressions de temps (futur)": "xxxxxxxxxxxxxxx","Identité & état civil": "nnnnnnnnnnaaaaaannnaaaaaa","Agenda & rendez-vous": "nnnaaaannnnn","Verbes (cours 43)": "vvvvvvvvvvvv","Participes passifs (בינוני פעול)": "aaaaaaaaaaaaaaaaaaaaaaaaaa","Connecteurs temporels (cours 46)": "oxoxoxoooodddd","Désert & Néguev (cours 46-47)": "nnnnnnnnnaannnnnnnnannvnnnnnnn","Verbes (cours 44-47)": "vvvvvvvvvvvv","Sécurité & danger (cours 48)": "naannnnvvvvn","Verbes (cours 48-49)": "vvvvvvvvvvvvvooo","Religion & société israélienne": "nnaaaaaanaxxnnvnxoonnnonnnnnn","Divers (cours 51)": "nnnnannnvvvvvvvvnnnd","Chiffres (1-10)": "cccccccccccccccccccccc","Ordinaux (1er - 10e)": "cccccccccccccccccccc","Nature & société": "nnnnnnnnnnnnnnnnnnnnnnaannnnnnnnnnn","Slang & expressions": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"};
+
+
 /* Thèmes de base vs avancés (pour les boutons rapides) */
 const CORE_THEMES = ["Bases & pronoms", "Temps & fréquence", "Famille", "Corps", "Nourriture & repas", "Couleurs", "Adjectifs", "Verbes (infinitif)", "Maison & meubles", "Chiffres (1-10)"];
 const ADVANCED_THEMES = ["Médecine (avancé)", "Verbes Nif'al (réflexifs/passifs)", "Verbes Hitpa'el (réfléchis)", "Travail & emploi", "Verbes au présent (conjugaison)", "Slang & expressions", "Géographie & directions", "Ordinaux (1er - 10e)", "Histoire & sionisme", "Société & identité", "Verbes (cours 40-42)", "Expressions de temps (futur)", "Identité & état civil", "Agenda & rendez-vous", "Verbes (cours 43)", "Participes passifs (בינוני פעול)", "Connecteurs temporels (cours 46)", "Désert & Néguev (cours 46-47)", "Verbes (cours 44-47)", "Sécurité & danger (cours 48)", "Verbes (cours 48-49)", "Religion & société israélienne", "Divers (cours 51)"];
@@ -6816,13 +6838,55 @@ refreshGlobalStatsDisplay();
      pour survivre a une recherche ou a un repli/depli. */
   var masks = {};
 
+  /* Vue courante : 'theme' (l'origine) ou 'nature' (grandes listes). */
+  var view = 'theme';
+  var CAT_ORDER = [
+    ['v', 'Verbes'],
+    ['n', 'Noms'],
+    ['a', 'Adjectifs'],
+    ['d', 'Adverbes'],
+    ['o', 'Mots-outils (pronoms, pr\u00e9positions, liaisons)'],
+    ['c', 'Nombres & ordinaux'],
+    ['x', 'Expressions & tournures']
+  ];
+
+  /* Renvoie les sections a afficher, selon la vue. En vue 'nature' un mot
+     present dans deux themes n'est liste qu'une fois, et chaque liste est
+     classee alphabetiquement sur le francais. */
+  function groups() {
+    if (view === 'theme') {
+      return Object.keys(VOCAB).map(function (t) {
+        return { name: t, rows: VOCAB[t] || [] };
+      });
+    }
+    var buckets = {}, seen = {};
+    CAT_ORDER.forEach(function (c) { buckets[c[0]] = []; });
+    Object.keys(VOCAB).forEach(function (t) {
+      var code = (typeof NATURE !== 'undefined' && NATURE[t]) || '';
+      (VOCAB[t] || []).forEach(function (e, i) {
+        var c = code.charAt(i) || 'n';
+        var key = c + '|' + e[0] + '|' + e[1];
+        if (seen[key]) return;
+        seen[key] = 1;
+        if (buckets[c]) buckets[c].push(e);
+      });
+    });
+    return CAT_ORDER.map(function (c) {
+      var arr = buckets[c[0]].slice().sort(function (a, b) {
+        return String(a[1]).localeCompare(String(b[1]), 'fr', { sensitivity: 'base' });
+      });
+      return { name: c[1], rows: arr };
+    }).filter(function (g) { return g.rows.length; });
+  }
+
   function render() {
     var raw = search.value.trim();
     var q = strip(raw).toLowerCase();
     var html = '', total = 0, shown = 0;
 
-    Object.keys(VOCAB).forEach(function (theme) {
-      var rows = VOCAB[theme] || [];
+    groups().forEach(function (g) {
+      var theme = g.name;
+      var rows = g.rows;
       total += rows.length;
       if (q) {
         rows = rows.filter(function (e) {
@@ -6889,6 +6953,19 @@ refreshGlobalStatsDisplay();
                  (s.classList.contains('hide-fr') && cell.classList.contains('cours-fr'));
     if (masked) cell.classList.toggle('shown');
   });
+
+  var viewsBar = document.getElementById('cours-views');
+  if (viewsBar) {
+    viewsBar.addEventListener('click', function (e) {
+      var b = e.target.closest('.view-btn');
+      if (!b || b.dataset.view === view) return;
+      view = b.dataset.view;
+      viewsBar.querySelectorAll('.view-btn').forEach(function (x) {
+        x.classList.toggle('on', x === b);
+      });
+      render();
+    });
+  }
 
   search.addEventListener('input', render);
   document.getElementById('cours-open').addEventListener('click', function () {

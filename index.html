@@ -1056,6 +1056,79 @@
 
 
   /* ============================================================
+     FLASHCARDS — revision par theme, en superposition
+     ============================================================ */
+  .flash-btn {
+    padding: 5px 11px; cursor: pointer; white-space: nowrap;
+    background: var(--accent); border: 1px solid var(--accent); border-radius: 20px;
+    font-family: inherit; font-size: 10px; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--on-accent); transition: all .15s;
+  }
+  .flash-btn:hover { filter: brightness(1.12); }
+  .cours-sec > summary .flash-btn { margin-left: auto; }
+  .cours-sec[open] > summary .flash-btn { margin-left: 0; }
+
+  .flash-ov {
+    position: fixed; inset: 0; z-index: 90; display: none;
+    background: rgba(20, 18, 14, 0.55); backdrop-filter: blur(3px);
+    padding: 20px; overflow-y: auto;
+  }
+  .flash-ov.on { display: flex; align-items: center; justify-content: center; }
+  .flash-box {
+    width: 100%; max-width: 620px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 6px; padding: 22px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  }
+  .flash-top { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .flash-title { font-weight: 600; font-size: 15px; flex: 1; }
+  .flash-close {
+    background: none; border: none; cursor: pointer; font-size: 22px;
+    line-height: 1; color: var(--muted); font-family: inherit; padding: 0 4px;
+  }
+  .flash-close:hover { color: var(--accent); }
+  .flash-sub {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 16px;
+  }
+  .flash-dirs { display: flex; gap: 6px; margin-left: auto; }
+  .flash-dir {
+    padding: 4px 10px; cursor: pointer; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 20px; font-family: inherit;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); transition: all .15s;
+  }
+  .flash-dir:hover { border-color: var(--accent); color: var(--accent); }
+  .flash-dir.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  .flash-card {
+    border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
+    min-height: 210px; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 12px; padding: 26px 20px; cursor: pointer;
+    text-align: center; user-select: none;
+  }
+  .flash-card:hover { border-color: var(--accent-soft); }
+  .flash-face-fr { font-size: 22px; color: var(--ink); }
+  .flash-face-he { direction: rtl; font-size: 34px; color: var(--accent); line-height: 1.5; }
+  .flash-pres { direction: rtl; font-size: 17px; color: var(--gold); }
+  .flash-sep { width: 46px; border-top: 1px solid var(--line); }
+  .flash-hint { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .flash-acts { display: flex; gap: 10px; margin-top: 16px; }
+  .flash-acts .btn { flex: 1; }
+  .flash-bar { height: 3px; background: var(--line); border-radius: 3px; margin: 16px 0 0; overflow: hidden; }
+  .flash-bar i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+  .flash-end { text-align: center; padding: 18px 0 4px; }
+  .flash-end .big { font-size: 30px; color: var(--accent); }
+  .flash-end p { color: var(--ink-soft); margin: 10px 0 18px; }
+  @media (max-width: 700px) {
+    .flash-box { padding: 16px; }
+    .flash-card { min-height: 180px; padding: 20px 14px; }
+    .flash-face-he { font-size: 29px; }
+    .flash-face-fr { font-size: 19px; }
+    .flash-acts { flex-direction: column; }
+  }
+
+  /* ============================================================
      LEXIQUE — vues : par theme / par nature grammaticale
      ============================================================ */
   .cours-views { display: flex; gap: 8px; margin: 0 0 14px; flex-wrap: wrap; }
@@ -3802,11 +3875,47 @@ Formes vocalisées selon la norme de l'Académie de la langue hébraïque&nbsp;;
     </div>
 
     <div class="stats-card">
+      <h3>Flashcards</h3>
+      <div class="stats-numbers">
+        <div class="stat-box"><span class="num" id="fs-seen">0</span><span class="lbl">cartes vues</span></div>
+        <div class="stat-box green"><span class="num" id="fs-known">0</span><span class="lbl">sues</span></div>
+        <div class="stat-box red"><span class="num" id="fs-again">0</span><span class="lbl">à revoir</span></div>
+        <div class="stat-box gold"><span class="num" id="fs-rate">—</span><span class="lbl">% de réussite</span></div>
+      </div>
+      <div style="font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 14px;">
+        Compteur propre aux flashcards : il n'entre pas dans les statistiques du quiz à choix multiples ci-dessus.
+      </div>
+      <ul class="difficult-list" id="flash-list"><li style="color: var(--muted); justify-content: center; font-style: italic;">Aucune carte révisée pour l'instant — ouvre l'onglet Cours et lance une série.</li></ul>
+      <div class="missed-actions" style="margin-top:14px">
+        <button class="btn" id="reset-flash">Effacer mes stats de flashcards</button>
+      </div>
+    </div>
+
+    <div class="stats-card">
       <h3>Données</h3>
       <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 14px;">
         Tes stats et préférences sont sauvegardées dans ton navigateur (localStorage). Elles ne quittent pas ton appareil.
       </p>
       <button class="danger-btn" id="reset-stats">Effacer toutes mes statistiques</button>
+    </div>
+  </div>
+
+  <div class="flash-ov" id="flash-ov" role="dialog" aria-modal="true">
+    <div class="flash-box">
+      <div class="flash-top">
+        <span class="flash-title" id="flash-title">—</span>
+        <button class="flash-close" id="flash-close" title="Fermer (Échap)">&times;</button>
+      </div>
+      <div class="flash-sub">
+        <span id="flash-progress">—</span>
+        <span class="flash-dirs" id="flash-dirs">
+          <button type="button" class="flash-dir on" data-dir="fr">FR &rarr; עב</button>
+          <button type="button" class="flash-dir" data-dir="he">עב &rarr; FR</button>
+          <button type="button" class="flash-dir" data-dir="mix">Al&eacute;atoire</button>
+        </span>
+      </div>
+      <div id="flash-body"></div>
+      <div class="flash-bar"><i id="flash-bar-i" style="width:0"></i></div>
     </div>
   </div>
 
@@ -4260,7 +4369,9 @@ const VOCAB = {
     ["להתחיל", "commencer", "לְהַתְחִיל"],
     ["להמשיך", "continuer", "לְהַמְשִׁיךְ"],
     ["לגמור", "finir", "לִגְמוֹר"],
-    ["לסיים", "terminer", "לְסַיֵּים"]
+    ["לסיים", "terminer", "לְסַיֵּים"],
+    ["להפסיק", "arrêter / cesser (de faire)", "לְהַפְסִיק"],
+    ["לעצור", "arrêter / s'arrêter / interpeller", "לַעֲצוֹר"]
   ],
   "Verbes au présent (conjugaison)": [
     ["לומד / לומדת / לומדים / לומדות", "apprend (m./f./m.pl./f.pl.)", "לוֹמֵד / לוֹמֶדֶת / לוֹמְדִים / לוֹמְדוֹת"],
@@ -4927,7 +5038,7 @@ const VOCAB = {
 
 /* Nature grammaticale de chaque entree, dans l ordre de VOCAB :
    v=verbe n=nom a=adjectif d=adverbe o=mot-outil c=nombre x=expression */
-const NATURE = {"Bases & pronoms": "xxxxoooooooooooooooooooooooooooooooooooooodoodo","Temps & fréquence": "ddddddddddddnnnnnnnnnnnoooddooodn","Famille": "nnnnnnnnnnnnnnnnnnnnnnnnn","Personnes & âges": "nnnnnnnaannnnn","Corps": "nnnnnnnnnnnnnnnnnnnnnnnnn","Santé & médecine (base)": "nnnnnnnnnnnnnnnnnnann","Médecine (avancé)": "nnnnxnnnnvnnannaannnnannnannnnvvaa","Maison & meubles": "nnnnnnnnnnnnnnnnnnnnnnnn","Nourriture & repas": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Restaurant & café": "nnnnnnnnnnnnnnnn","Vêtements": "nnnnnnnnnnnnnnnnnnnnnn","Couleurs": "aaaaaaaaaaa","Adjectifs": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","Verbes (infinitif)": "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv","Verbes au présent (conjugaison)": "vvvvvvvvvvvvvvvvvvvvvvv","Verbes Nif'al (réflexifs/passifs)": "vvvvvvvvvvvvv","Verbes Hitpa'el (réfléchis)": "vvvvvvvvvvvvvv","Magasins & ville": "nnnnnnnnnnnnnnnnnnnnnnn","Météo & saisons": "nnnnnnnnnnnnnnaaaa","Géographie & directions": "nnnnddddddddddddddnnnnnnnnnnn","Transports": "nnnnnnnnnnnd","Travail & emploi": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Histoire & sionisme": "nnnnnaaannannnnnnnnnnannnnnnnnaanaan","Société & identité": "nnnnnnnnnnnaannaannnnaannnaannn","Verbes (cours 40-42)": "vvvvvvvvvvvvvvvvvvvvvvvvvv","Expressions de temps (futur)": "xxxxxxxxxxxxxxx","Identité & état civil": "nnnnnnnnnnaaaaaannnaaaaaa","Agenda & rendez-vous": "nnnaaaannnnn","Verbes (cours 43)": "vvvvvvvvvvvv","Participes passifs (בינוני פעול)": "aaaaaaaaaaaaaaaaaaaaaaaaaa","Connecteurs temporels (cours 46)": "oxoxoxoooodddd","Désert & Néguev (cours 46-47)": "nnnnnnnnnaannnnnnnnannvnnnnnnn","Verbes (cours 44-47)": "vvvvvvvvvvvv","Sécurité & danger (cours 48)": "naannnnvvvvn","Verbes (cours 48-49)": "vvvvvvvvvvvvvooo","Religion & société israélienne": "nnaaaaaanaxxnnvnxoonnnonnnnnn","Divers (cours 51)": "nnnnannnvvvvvvvvnnnd","Chiffres (1-10)": "cccccccccccccccccccccc","Ordinaux (1er - 10e)": "cccccccccccccccccccc","Nature & société": "nnnnnnnnnnnnnnnnnnnnnnaannnnnnnnnnn","Slang & expressions": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"};
+const NATURE = {"Bases & pronoms": "xxxxoooooooooooooooooooooooooooooooooooooodoodo","Temps & fréquence": "ddddddddddddnnnnnnnnnnnoooddooodn","Famille": "nnnnnnnnnnnnnnnnnnnnnnnnn","Personnes & âges": "nnnnnnnaannnnn","Corps": "nnnnnnnnnnnnnnnnnnnnnnnnn","Santé & médecine (base)": "nnnnnnnnnnnnnnnnnnann","Médecine (avancé)": "nnnnxnnnnvnnannaannnnannnannnnvvaa","Maison & meubles": "nnnnnnnnnnnnnnnnnnnnnnnn","Nourriture & repas": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Restaurant & café": "nnnnnnnnnnnnnnnn","Vêtements": "nnnnnnnnnnnnnnnnnnnnnn","Couleurs": "aaaaaaaaaaa","Adjectifs": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","Verbes (infinitif)": "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv","Verbes au présent (conjugaison)": "vvvvvvvvvvvvvvvvvvvvvvv","Verbes Nif'al (réflexifs/passifs)": "vvvvvvvvvvvvv","Verbes Hitpa'el (réfléchis)": "vvvvvvvvvvvvvv","Magasins & ville": "nnnnnnnnnnnnnnnnnnnnnnn","Météo & saisons": "nnnnnnnnnnnnnnaaaa","Géographie & directions": "nnnnddddddddddddddnnnnnnnnnnn","Transports": "nnnnnnnnnnnd","Travail & emploi": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Histoire & sionisme": "nnnnnaaannannnnnnnnnnannnnnnnnaanaan","Société & identité": "nnnnnnnnnnnaannaannnnaannnaannn","Verbes (cours 40-42)": "vvvvvvvvvvvvvvvvvvvvvvvvvv","Expressions de temps (futur)": "xxxxxxxxxxxxxxx","Identité & état civil": "nnnnnnnnnnaaaaaannnaaaaaa","Agenda & rendez-vous": "nnnaaaannnnn","Verbes (cours 43)": "vvvvvvvvvvvv","Participes passifs (בינוני פעול)": "aaaaaaaaaaaaaaaaaaaaaaaaaa","Connecteurs temporels (cours 46)": "oxoxoxoooodddd","Désert & Néguev (cours 46-47)": "nnnnnnnnnaannnnnnnnannvnnnnnnn","Verbes (cours 44-47)": "vvvvvvvvvvvv","Sécurité & danger (cours 48)": "naannnnvvvvn","Verbes (cours 48-49)": "vvvvvvvvvvvvvooo","Religion & société israélienne": "nnaaaaaanaxxnnvnxoonnnonnnnnn","Divers (cours 51)": "nnnnannnvvvvvvvvnnnd","Chiffres (1-10)": "cccccccccccccccccccccc","Ordinaux (1er - 10e)": "cccccccccccccccccccc","Nature & société": "nnnnnnnnnnnnnnnnnnnnnnaannnnnnnnnnn","Slang & expressions": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"};
 
 
 /* Thèmes de base vs avancés (pour les boutons rapides) */
@@ -4945,6 +5056,8 @@ const ADVANCED_THEMES = ["Médecine (avancé)", "Verbes Nif'al (réflexifs/passi
    que pour Pi'el / Hif'il / Hitpa'el, pas pour Pa'al ni Nif'al.
    ============================================ */
 const VERB_PRESENT = {
+  "לְהַפְסִיק": "מַפְסִיק",
+  "לַעֲצוֹר": "עוֹצֵר",
   "לִלְמוֹד": "לוֹמֵד",
   "לִכְתּוֹב": "כּוֹתֵב",
   "לִבְדּוֹק": "בּוֹדֵק",
@@ -6879,14 +6992,18 @@ refreshGlobalStatsDisplay();
     }).filter(function (g) { return g.rows.length; });
   }
 
+  var lastGroups = {};
+
   function render() {
     var raw = search.value.trim();
     var q = strip(raw).toLowerCase();
     var html = '', total = 0, shown = 0;
 
+    lastGroups = {};
     groups().forEach(function (g) {
       var theme = g.name;
       var rows = g.rows;
+      lastGroups[g.name] = g.rows;
       total += rows.length;
       if (q) {
         rows = rows.filter(function (e) {
@@ -6907,6 +7024,7 @@ refreshGlobalStatsDisplay();
                 '<button type="button" class="mask-btn' + (mk === 'fr' ? ' on' : '') +
                   '" data-mask="fr">Masquer le français</button>' +
               '</span>' +
+              '<button type="button" class="flash-btn" data-flash="1">Flashcards</button>' +
               '<span class="c">' + rows.length + ' mots</span></summary>' +
               '<table class="cours-tbl"><tbody>' +
               rows.map(function (e) {
@@ -6928,6 +7046,16 @@ refreshGlobalStatsDisplay();
   /* Les boutons vivent dans le <summary> : sans preventDefault, le clic
      replierait la categorie qu'on veut justement garder ouverte. */
   list.addEventListener('click', function (e) {
+    var fb = e.target.closest('.flash-btn');
+    if (fb) {
+      e.preventDefault();
+      e.stopPropagation();
+      var s0 = fb.closest('.cours-sec');
+      var name = s0.dataset.theme;
+      var src = lastGroups[name] || [];
+      if (src.length && typeof window.openFlash === 'function') window.openFlash(name, src);
+      return;
+    }
     var btn = e.target.closest('.mask-btn');
     if (btn) {
       e.preventDefault();
@@ -6975,6 +7103,217 @@ refreshGlobalStatsDisplay();
     list.querySelectorAll('details').forEach(function (d) { d.open = false; });
   });
   render();
+})();
+
+
+/* ============================================
+   FLASHCARDS — revision par section du lexique
+   Compteur separe : storage.flash, jamais melange
+   avec storage.wordStats (quiz a choix multiples).
+   ============================================ */
+(function () {
+  var ov = document.getElementById('flash-ov');
+  if (!ov) return;
+  var body = document.getElementById('flash-body');
+  var titleEl = document.getElementById('flash-title');
+  var progEl = document.getElementById('flash-progress');
+  var barEl = document.getElementById('flash-bar-i');
+  var dirsEl = document.getElementById('flash-dirs');
+
+  if (!storage.flash || typeof storage.flash !== 'object') storage.flash = {};
+  var dir = storage.preferences.flashDir || 'fr';
+
+  var title = '', deck = [], pos = 0, flipped = false, sess = null, again = [];
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function record(e, ok) {
+    var k = e[0] + '|' + e[1];
+    var s = storage.flash[k];
+    if (!s) { s = storage.flash[k] = { seen: 0, known: 0, again: 0 }; }
+    s.seen++;
+    if (ok) s.known++; else s.again++;
+    saveData();
+  }
+
+  /* face avant : 'fr' (par defaut), 'he', ou tirage par carte en mode 'mix' */
+  function faceOf(i) {
+    if (dir === 'mix') return (deck[i].__f || 'fr');
+    return dir;
+  }
+  function prepare(rows) {
+    deck = shuffle(rows).map(function (e) {
+      var c = e.slice();
+      c.__f = Math.random() < 0.5 ? 'fr' : 'he';
+      return c;
+    });
+    pos = 0; flipped = false; again = [];
+    sess = { known: 0, again: 0, total: deck.length };
+  }
+
+  function cardHtml(e, face, showBack) {
+    var he = esc(e[2] || e[0]);
+    var pr = (typeof VERB_PRESENT !== 'undefined') && (VERB_PRESENT[e[2]] || VERB_PRESENT[e[0]]);
+    var heBlock = '<div class="flash-face-he">' + he +
+      (pr && showBack ? '<div class="flash-pres">אֲנִי ' + esc(pr) + '</div>' : '') + '</div>';
+    var frBlock = '<div class="flash-face-fr">' + esc(e[1]) + '</div>';
+    var front = face === 'fr' ? frBlock : heBlock;
+    var back = face === 'fr' ? heBlock : frBlock;
+    return '<div class="flash-card" id="flash-card">' + front +
+      (showBack ? '<div class="flash-sep"></div>' + back
+                : '<div class="flash-hint">Clique ou barre d\'espace pour retourner</div>') +
+      '</div>' +
+      (showBack
+        ? '<div class="flash-acts">' +
+            '<button class="btn" data-ans="0">&larr; &Agrave; revoir</button>' +
+            '<button class="btn primary" data-ans="1">Je savais &rarr;</button>' +
+          '</div>'
+        : '<div class="flash-acts"><button class="btn primary" data-flip="1">Retourner</button></div>');
+  }
+
+  function draw() {
+    if (pos >= deck.length) return end();
+    var e = deck[pos];
+    progEl.textContent = 'Carte ' + (pos + 1) + ' / ' + deck.length;
+    barEl.style.width = Math.round(100 * pos / deck.length) + '%';
+    body.innerHTML = cardHtml(e, faceOf(pos), flipped);
+  }
+
+  function end() {
+    progEl.textContent = 'Série terminée';
+    barEl.style.width = '100%';
+    var pct = sess.total ? Math.round(100 * sess.known / sess.total) : 0;
+    body.innerHTML =
+      '<div class="flash-end">' +
+        '<div class="big">' + sess.known + ' / ' + sess.total + '</div>' +
+        '<p>' + pct + '&nbsp;% de cartes sues' +
+          (again.length ? ' &middot; ' + again.length + ' à revoir' : ' — série parfaite !') + '</p>' +
+        '<div class="flash-acts">' +
+          (again.length ? '<button class="btn primary" data-redo="again">Revoir les ' + again.length + ' ratées</button>' : '') +
+          '<button class="btn" data-redo="all">Tout recommencer</button>' +
+          '<button class="btn" data-close="1">Fermer</button>' +
+        '</div>' +
+      '</div>';
+    if (typeof window.refreshFlashStats === 'function') window.refreshFlashStats();
+  }
+
+  function answer(ok) {
+    var e = deck[pos];
+    record(e, ok);
+    if (ok) sess.known++; else { sess.again++; again.push(e); }
+    pos++; flipped = false;
+    draw();
+  }
+
+  function open(name, rows) {
+    title = name;
+    titleEl.textContent = name;
+    prepare(rows);
+    ov.classList.add('on');
+    document.body.style.overflow = 'hidden';
+    draw();
+  }
+  function close() {
+    ov.classList.remove('on');
+    document.body.style.overflow = '';
+    if (typeof window.refreshFlashStats === 'function') window.refreshFlashStats();
+  }
+  window.openFlash = open;
+
+  /* --- interactions --- */
+  ov.addEventListener('click', function (e) {
+    if (e.target === ov) return close();
+    if (e.target.closest('#flash-close') || e.target.closest('[data-close]')) return close();
+    if (e.target.closest('#flash-card') || e.target.closest('[data-flip]')) {
+      if (pos < deck.length) { flipped = !flipped; draw(); }
+      return;
+    }
+    var a = e.target.closest('[data-ans]');
+    if (a) return answer(a.dataset.ans === '1');
+    var r = e.target.closest('[data-redo]');
+    if (r) {
+      prepare(r.dataset.redo === 'again' ? again : deck);
+      draw();
+      return;
+    }
+    var d = e.target.closest('.flash-dir');
+    if (d) {
+      dir = d.dataset.dir;
+      storage.preferences.flashDir = dir;
+      saveData();
+      dirsEl.querySelectorAll('.flash-dir').forEach(function (x) {
+        x.classList.toggle('on', x === d);
+      });
+      draw();
+    }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!ov.classList.contains('on')) return;
+    if (e.key === 'Escape') { e.preventDefault(); return close(); }
+    if (pos >= deck.length) return;
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipped = !flipped; return draw(); }
+    if (!flipped) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); answer(true); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); answer(false); }
+  });
+
+  /* etat initial du selecteur de sens */
+  dirsEl.querySelectorAll('.flash-dir').forEach(function (x) {
+    x.classList.toggle('on', x.dataset.dir === dir);
+  });
+
+  /* --- stats flashcards (onglet Mes stats) --- */
+  window.refreshFlashStats = function () {
+    var seen = 0, known = 0, ag = 0, worst = [];
+    for (var k in storage.flash) {
+      var s = storage.flash[k];
+      seen += s.seen; known += s.known; ag += s.again;
+      if (s.again > 0) worst.push({ k: k, s: s });
+    }
+    var set = function (id, v) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = v;
+    };
+    set('fs-seen', seen); set('fs-known', known); set('fs-again', ag);
+    set('fs-rate', seen ? Math.round(100 * known / seen) + '%' : '—');
+    var ul = document.getElementById('flash-list');
+    if (!ul) return;
+    if (!worst.length) {
+      ul.innerHTML = '<li style="color: var(--muted); justify-content: center; font-style: italic;">' +
+        (seen ? 'Aucune carte ratée — tout est su.' : "Aucune carte révisée pour l'instant — ouvre l'onglet Cours et lance une série.") + '</li>';
+      return;
+    }
+    worst.sort(function (a, b) { return b.s.again - a.s.again; });
+    ul.innerHTML = worst.slice(0, 15).map(function (w) {
+      var p = w.k.split('|');
+      return '<li><span class="word-he">' + esc(p[0]) + '</span>' +
+             '<span class="word-fr">' + esc(p[1]) + '</span>' +
+             '<span class="word-stat">' + w.s.again + ' ratée' + (w.s.again > 1 ? 's' : '') +
+             ' / ' + w.s.seen + '</span></li>';
+    }).join('');
+  };
+  window.refreshFlashStats();
+
+  var rf = document.getElementById('reset-flash');
+  if (rf) rf.addEventListener('click', function () {
+    if (confirm('Effacer uniquement les statistiques de flashcards ? Les stats du quiz ne sont pas touchées.')) {
+      storage.flash = {};
+      saveData();
+      window.refreshFlashStats();
+    }
+  });
 })();
 
 

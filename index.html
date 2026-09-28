@@ -7214,8 +7214,8 @@ refreshGlobalStatsDisplay();
       '</div>' +
       (showBack
         ? '<div class="flash-acts">' +
-            '<button class="btn" data-ans="0">&Agrave; revoir <span class="flash-key">P</span></button>' +
             '<button class="btn primary" data-ans="1">Je savais <span class="flash-key">A</span></button>' +
+            '<button class="btn" data-ans="0">&Agrave; revoir <span class="flash-key">P</span></button>' +
           '</div>'
         : '<div class="flash-acts"><button class="btn primary" data-flip="1">Retourner</button></div>');
   }
@@ -7321,8 +7321,8 @@ refreshGlobalStatsDisplay();
     if (!flipped) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = (e.key || '').toLowerCase();
-    if (k === 'a' || e.key === 'ArrowRight') { e.preventDefault(); return answer(true); }
-    if (k === 'p' || e.key === 'ArrowLeft') { e.preventDefault(); return answer(false); }
+    if (k === 'a' || e.key === 'ArrowLeft') { e.preventDefault(); return answer(true); }
+    if (k === 'p' || e.key === 'ArrowRight') { e.preventDefault(); return answer(false); }
   });
 
   /* etat initial du selecteur de sens */

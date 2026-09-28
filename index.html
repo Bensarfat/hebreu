@@ -1113,6 +1113,8 @@
   .flash-pres { direction: rtl; font-size: 17px; color: var(--gold); }
   .flash-sep { width: 46px; border-top: 1px solid var(--line); }
   .flash-hint { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .flash-card.solo .flash-face-fr { font-size: 34px; }
+  .flash-card.solo .flash-face-he { font-size: 50px; }
   .flash-key {
     display: inline-block; margin-left: 7px; padding: 1px 6px;
     border: 1px solid currentColor; border-radius: 4px; opacity: .65;
@@ -1130,6 +1132,8 @@
     .flash-card { min-height: 180px; padding: 20px 14px; }
     .flash-face-he { font-size: 29px; }
     .flash-face-fr { font-size: 19px; }
+    .flash-card.solo .flash-face-fr { font-size: 26px; }
+    .flash-card.solo .flash-face-he { font-size: 38px; }
     .flash-acts { flex-direction: column; }
   }
 
@@ -7208,9 +7212,8 @@ refreshGlobalStatsDisplay();
     var frBlock = '<div class="flash-face-fr">' + esc(e[1]) + '</div>';
     var front = face === 'fr' ? frBlock : heBlock;
     var back = face === 'fr' ? heBlock : frBlock;
-    return '<div class="flash-card" id="flash-card">' + front +
-      (showBack ? '<div class="flash-sep"></div>' + back
-                : '<div class="flash-hint">Clique ou barre d\'espace pour retourner &middot; puis A = je savais, P = &agrave; revoir</div>') +
+    return '<div class="flash-card' + (showBack ? '' : ' solo') + '" id="flash-card">' + front +
+      (showBack ? '<div class="flash-sep"></div>' + back : '') +
       '</div>' +
       (showBack
         ? '<div class="flash-acts">' +

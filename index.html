@@ -1056,6 +1056,34 @@
 
 
   /* ============================================================
+     COURS — bandeau de stats et de revision en haut de l'onglet
+     ============================================================ */
+  .cours-dash {
+    border: 1px solid var(--line); background: var(--paper);
+    border-radius: 6px; padding: 16px 18px; margin: 0 0 16px;
+  }
+  .cd-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: 10px; margin-bottom: 12px;
+  }
+  .cd-box { text-align: center; padding: 10px 6px; border: 1px solid var(--line); background: var(--bg); }
+  .cd-box b { display: block; font-size: 23px; font-weight: 400; line-height: 1; margin-bottom: 4px; color: var(--ink); }
+  .cd-box span { font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .cd-box.green b { color: var(--olive); }
+  .cd-box.red b { color: var(--bad); }
+  .cd-box.gold b { color: var(--gold); }
+  .cd-flash {
+    font-size: 11.5px; color: var(--muted); letter-spacing: .4px;
+    display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center;
+  }
+  .cd-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .cd-actions .btn { font-size: 11px; padding: 9px 16px; }
+  @media (max-width: 700px) {
+    .cours-dash { padding: 14px; }
+    .cd-box b { font-size: 20px; }
+  }
+
+  /* ============================================================
      FLASHCARDS — revision par theme, en superposition
      ============================================================ */
   .flash-btn {
@@ -2513,6 +2541,19 @@
   <!-- ================ STATS PANEL ================ -->
   <!-- ================ COURS PANEL ================ -->
   <div class="panel" id="panel-cours">
+    <div class="cours-dash" id="cours-dash">
+      <div class="cd-grid">
+        <div class="cd-box"><b id="cd-seen">0</b><span>mots vus</span></div>
+        <div class="cd-box green"><b id="cd-mastered">0</b><span>ma&icirc;tris&eacute;s</span></div>
+        <div class="cd-box red"><b id="cd-review">0</b><span>&agrave; revoir (quiz + cartes)</span></div>
+        <div class="cd-box gold"><b id="cd-rate">&mdash;</b><span>r&eacute;ussite quiz</span></div>
+      </div>
+      <div class="cd-flash" id="cd-flash">&mdash;</div>
+      <div class="cd-actions">
+        <button class="btn primary" id="cd-review-flash">R&eacute;viser les mots rat&eacute;s en flashcards</button>
+        <button class="btn" id="cd-review-list">Voir la liste des mots rat&eacute;s</button>
+      </div>
+    </div>
     <div class="cours-views" id="cours-views">
       <button type="button" class="view-btn on" data-view="theme">Par th&egrave;me</button>
       <button type="button" class="view-btn" data-view="nature">Par nature</button>
@@ -6993,19 +7034,24 @@ refreshGlobalStatsDisplay();
     return false;
   }
 
+  function reviewRows() {
+    var out = [], vu = {};
+    Object.keys(VOCAB).forEach(function (t) {
+      (VOCAB[t] || []).forEach(function (e) {
+        var k = e[0] + '|' + e[1];
+        if (vu[k] || !toReview(e)) return;
+        vu[k] = 1; out.push(e);
+      });
+    });
+    out.sort(function (a, b) {
+      return String(a[1]).localeCompare(String(b[1]), 'fr', { sensitivity: 'base' });
+    });
+    return out;
+  }
+
   function groups() {
     if (view === 'revoir') {
-      var out = [], vu = {};
-      Object.keys(VOCAB).forEach(function (t) {
-        (VOCAB[t] || []).forEach(function (e) {
-          var k = e[0] + '|' + e[1];
-          if (vu[k] || !toReview(e)) return;
-          vu[k] = 1; out.push(e);
-        });
-      });
-      out.sort(function (a, b) {
-        return String(a[1]).localeCompare(String(b[1]), 'fr', { sensitivity: 'base' });
-      });
+      var out = reviewRows();
       return out.length ? [{ name: '\u00c0 revoir', rows: out }] : [];
     }
     if (view === 'theme') {
@@ -7083,6 +7129,7 @@ refreshGlobalStatsDisplay();
     countEl.textContent = q
       ? shown + ' mot' + (shown > 1 ? 's' : '') + ' trouvé' + (shown > 1 ? 's' : '')
       : total + ' mots au total';
+    dash();
   }
 
   /* Les boutons vivent dans le <summary> : sans preventDefault, le clic
@@ -7124,6 +7171,58 @@ refreshGlobalStatsDisplay();
     if (masked) cell.classList.toggle('shown');
   });
 
+  /* --- bandeau de stats en haut de l'onglet Cours --- */
+  function dash() {
+    var seen = 0, mastered = 0, correct = 0, att = 0;
+    for (var k in storage.wordStats) {
+      if (typeof isExcludedKey === 'function' && isExcludedKey(k)) continue;
+      var s = storage.wordStats[k];
+      seen++;
+      if (typeof isMastered === 'function' && isMastered(s)) mastered++;
+      correct += s.correct; att += s.correct + s.wrong;
+    }
+    var nrev = reviewRows().length;
+    var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    set('cd-seen', seen);
+    set('cd-mastered', mastered);
+    set('cd-review', nrev);
+    set('cd-rate', att ? Math.round(100 * correct / att) + '%' : '—');
+
+    var fs = 0, fk = 0, fa = 0;
+    var fl = storage.flash || {};
+    for (var j in fl) { fs += fl[j].seen; fk += fl[j].known; fa += fl[j].again; }
+    var fEl = document.getElementById('cd-flash');
+    if (fEl) fEl.textContent = fs
+      ? 'Flashcards : ' + fs + ' carte' + (fs > 1 ? 's' : '') + ' vue' + (fs > 1 ? 's' : '') +
+        ' · ' + fk + ' sue' + (fk > 1 ? 's' : '') + ' · ' + fa + ' ratée' + (fa > 1 ? 's' : '') +
+        ' · ' + Math.round(100 * fk / fs) + ' % de réussite'
+      : 'Flashcards : aucune carte révisée pour l\'instant — le bouton Flashcards de chaque liste lance une série.';
+
+    var bF = document.getElementById('cd-review-flash');
+    var bL = document.getElementById('cd-review-list');
+    if (bF) {
+      bF.disabled = !nrev;
+      bF.style.opacity = nrev ? '' : '.45';
+      bF.textContent = nrev
+        ? 'Réviser les ' + nrev + ' mot' + (nrev > 1 ? 's' : '') + ' raté' + (nrev > 1 ? 's' : '') + ' en flashcards'
+        : 'Aucun mot à revoir';
+    }
+    if (bL) bL.style.display = nrev ? 'inline-block' : 'none';
+  }
+  window.updateCoursDash = dash;
+
+  var bRF = document.getElementById('cd-review-flash');
+  if (bRF) bRF.addEventListener('click', function () {
+    var rows = reviewRows();
+    if (rows.length && typeof window.openFlash === 'function') window.openFlash('À revoir', rows);
+  });
+  var bRL = document.getElementById('cd-review-list');
+  if (bRL) bRL.addEventListener('click', function () {
+    var b = document.querySelector('.view-btn[data-view="revoir"]');
+    if (b) b.click();
+    document.getElementById('cours-views').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
   var viewsBar = document.getElementById('cours-views');
   if (viewsBar) {
     viewsBar.addEventListener('click', function (e) {
@@ -7136,6 +7235,8 @@ refreshGlobalStatsDisplay();
       render();
     });
   }
+
+  window.renderCours = render;
 
   search.addEventListener('input', render);
   document.getElementById('cours-open').addEventListener('click', function () {
@@ -7271,6 +7372,8 @@ refreshGlobalStatsDisplay();
     ov.classList.remove('on');
     document.body.style.overflow = '';
     if (typeof window.refreshFlashStats === 'function') window.refreshFlashStats();
+    if (typeof window.updateCoursDash === 'function') window.updateCoursDash();
+    if (typeof window.renderCours === 'function') window.renderCours();
   }
   window.openFlash = open;
 

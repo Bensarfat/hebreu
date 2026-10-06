@@ -1129,6 +1129,25 @@
   .flash-dir:hover { border-color: var(--accent); color: var(--accent); }
   .flash-dir.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
+  .conj-line { display: flex; gap: 12px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
+  .conj-tense {
+    font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--muted); min-width: 62px; text-align: left;
+  }
+  .conj-form { direction: rtl; font-size: 27px; color: var(--accent); }
+  .conj-ask { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .conj-inf {
+    font-size: 13px; color: var(--ink-soft); display: flex; gap: 10px;
+    align-items: baseline; justify-content: center; flex-wrap: wrap;
+  }
+  .conj-inf .he { direction: rtl; font-size: 17px; color: var(--ink); }
+  .flash-card.solo .conj-form { font-size: 40px; }
+  @media (max-width: 700px) {
+    .conj-form { font-size: 23px; }
+    .flash-card.solo .conj-form { font-size: 31px; }
+    .conj-tense { min-width: 54px; }
+  }
+
   .flash-card {
     border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
     min-height: 210px; display: flex; flex-direction: column; align-items: center;
@@ -2552,6 +2571,7 @@
       <div class="cd-actions">
         <button class="btn primary" id="cd-review-flash">R&eacute;viser les mots rat&eacute;s en flashcards</button>
         <button class="btn" id="cd-review-list">Voir la liste des mots rat&eacute;s</button>
+        <button class="btn" id="cd-conj">Flashcards de conjugaison</button>
       </div>
     </div>
     <div class="cours-views" id="cours-views">
@@ -3949,6 +3969,22 @@ Formes vocalisées selon la norme de l'Académie de la langue hébraïque&nbsp;;
     </div>
 
     <div class="stats-card">
+      <h3>Conjugaison</h3>
+      <div class="stats-numbers">
+        <div class="stat-box"><span class="num" id="cj-seen">0</span><span class="lbl">cartes vues</span></div>
+        <div class="stat-box green"><span class="num" id="cj-known">0</span><span class="lbl">réussies</span></div>
+        <div class="stat-box red"><span class="num" id="cj-again">0</span><span class="lbl">à revoir</span></div>
+        <div class="stat-box gold"><span class="num" id="cj-rate">—</span><span class="lbl">% de réussite</span></div>
+      </div>
+      <p class="missed-intro" id="cj-intro">—</p>
+      <div class="missed-actions">
+        <button class="btn primary" id="cj-start">Lancer une série de conjugaison</button>
+        <button class="btn" id="cj-redo">Réviser les verbes ratés</button>
+      </div>
+      <ul class="difficult-list" id="cj-list"></ul>
+    </div>
+
+    <div class="stats-card">
       <h3>Données</h3>
       <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 14px;">
         Tes stats et préférences sont sauvegardées dans ton navigateur (localStorage). Elles ne quittent pas ton appareil.
@@ -5096,6 +5132,10 @@ const VOCAB = {
 /* Nature grammaticale de chaque entree, dans l ordre de VOCAB :
    v=verbe n=nom a=adjectif d=adverbe o=mot-outil c=nombre x=expression */
 const NATURE = {"Bases & pronoms": "xxxxoooooooooooooooooooooooooooooooooooooodoodo","Temps & fréquence": "ddddddddddddnnnnnnnnnnnoooddooodn","Famille": "nnnnnnnnnnnnnnnnnnnnnnnnn","Personnes & âges": "nnnnnnnaannnnn","Corps": "nnnnnnnnnnnnnnnnnnnnnnnnn","Santé & médecine (base)": "nnnnnnnnnnnnnnnnnnann","Médecine (avancé)": "nnnnxnnnnvnnannaannnnannnannnnvvaa","Maison & meubles": "nnnnnnnnnnnnnnnnnnnnnnnn","Nourriture & repas": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Restaurant & café": "nnnnnnnnnnnnnnnn","Vêtements": "nnnnnnnnnnnnnnnnnnnnnn","Couleurs": "aaaaaaaaaaa","Adjectifs": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","Verbes (infinitif)": "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv","Verbes au présent (conjugaison)": "vvvvvvvvvvvvvvvvvvvvvvv","Verbes Nif'al (réflexifs/passifs)": "vvvvvvvvvvvvv","Verbes Hitpa'el (réfléchis)": "vvvvvvvvvvvvvv","Magasins & ville": "nnnnnnnnnnnnnnnnnnnnnnn","Météo & saisons": "nnnnnnnnnnnnnnaaaa","Géographie & directions": "nnnnddddddddddddddnnnnnnnnnnn","Transports": "nnnnnnnnnnnd","Travail & emploi": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn","Histoire & sionisme": "nnnnnaaannannnnnnnnnnannnnnnnnaanaan","Société & identité": "nnnnnnnnnnnaannaannnnaannnaannn","Verbes (cours 40-42)": "vvvvvvvvvvvvvvvvvvvvvvvvvv","Expressions de temps (futur)": "xxxxxxxxxxxxxxx","Identité & état civil": "nnnnnnnnnnaaaaaannnaaaaaa","Agenda & rendez-vous": "nnnaaaannnnn","Verbes (cours 43)": "vvvvvvvvvvvv","Participes passifs (בינוני פעול)": "aaaaaaaaaaaaaaaaaaaaaaaaaa","Connecteurs temporels (cours 46)": "oxoxoxoooodddd","Désert & Néguev (cours 46-47)": "nnnnnnnnnaannnnnnnnannvnnnnnnn","Verbes (cours 44-47)": "vvvvvvvvvvvv","Sécurité & danger (cours 48)": "naannnnvvvvn","Verbes (cours 48-49)": "vvvvvvvvvvvvvooo","Religion & société israélienne": "nnaaaaaanaxxnnvnxoonnnonnnnnn","Divers (cours 51)": "nnnnannnvvvvvvvvnnnd","Chiffres (1-10)": "cccccccccccccccccccccc","Ordinaux (1er - 10e)": "cccccccccccccccccccc","Nature & société": "nnnnnnnnnnnnnnnnnnnnnnaannnnnnnnnnn","Slang & expressions": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"};
+
+/* Conjugaison : 82 verbes du vocabulaire, present / passe / futur
+   pour 5 pronoms (ani, ata, hu, hi, anahnu) dans cet ordre. */
+const CONJ = [{"i":"לִכְתּוֹב","f":"écrire","p":["כּוֹתֵב","כּוֹתֶבֶת","כּוֹתְבִים"],"a":["כָּתַבְתִּי","כָּתַבְתָּ","כָּתַב","כָּתְבָה","כָּתַבְנוּ"],"u":["אֶכְתּוֹב","תִּכְתּוֹב","יִכְתּוֹב","תִּכְתּוֹב","נִכְתּוֹב"]},{"i":"לִבְדּוֹק","f":"vérifier / examiner","p":["בּוֹדֵק","בּוֹדֶקֶת","בּוֹדְקִים"],"a":["בָּדַקְתִּי","בָּדַקְתָּ","בָּדַק","בָּדְקָה","בָּדַקְנוּ"],"u":["אֶבְדּוֹק","תִּבְדּוֹק","יִבְדּוֹק","תִּבְדּוֹק","נִבְדּוֹק"]},{"i":"לִסְגּוֹר","f":"fermer","p":["סוֹגֵר","סוֹגֶרֶת","סוֹגְרִים"],"a":["סָגַרְתִּי","סָגַרְתָּ","סָגַר","סָגְרָה","סָגַרְנוּ"],"u":["אֶסְגּוֹר","תִּסְגּוֹר","יִסְגּוֹר","תִּסְגּוֹר","נִסְגּוֹר"]},{"i":"לִשְׁמוֹר","f":"garder","p":["שׁוֹמֵר","שׁוֹמֶרֶת","שׁוֹמְרִים"],"a":["שָׁמַרְתִּי","שָׁמַרְתָּ","שָׁמַר","שָׁמְרָה","שָׁמַרְנוּ"],"u":["אֶשְׁמוֹר","תִּשְׁמוֹר","יִשְׁמוֹר","תִּשְׁמוֹר","נִשְׁמוֹר"]},{"i":"לִגְמוֹר","f":"finir","p":["גּוֹמֵר","גּוֹמֶרֶת","גּוֹמְרִים"],"a":["גָּמַרְתִּי","גָּמַרְתָּ","גָּמַר","גָּמְרָה","גָּמַרְנוּ"],"u":["אֶגְמוֹר","תִּגְמוֹר","יִגְמוֹר","תִּגְמוֹר","נִגְמוֹר"]},{"i":"לִזְכּוֹר","f":"se souvenir","p":["זוֹכֵר","זוֹכֶרֶת","זוֹכְרִים"],"a":["זָכַרְתִּי","זָכַרְתָּ","זָכַר","זָכְרָה","זָכַרְנוּ"],"u":["אֶזְכּוֹר","תִּזְכּוֹר","יִזְכּוֹר","תִּזְכּוֹר","נִזְכּוֹר"]},{"i":"לִגְנוֹב","f":"voler / dérober","p":["גּוֹנֵב","גּוֹנֶבֶת","גּוֹנְבִים"],"a":["גָּנַבְתִּי","גָּנַבְתָּ","גָּנַב","גָּנְבָה","גָּנַבְנוּ"],"u":["אֶגְנוֹב","תִּגְנוֹב","יִגְנוֹב","תִּגְנוֹב","נִגְנוֹב"]},{"i":"לִשְׁבּוֹר","f":"casser","p":["שׁוֹבֵר","שׁוֹבֶרֶת","שׁוֹבְרִים"],"a":["שָׁבַרְתִּי","שָׁבַרְתָּ","שָׁבַר","שָׁבְרָה","שָׁבַרְנוּ"],"u":["אֶשְׁבּוֹר","תִּשְׁבּוֹר","יִשְׁבּוֹר","תִּשְׁבּוֹר","נִשְׁבּוֹר"]},{"i":"לִתְפּוֹס","f":"attraper","p":["תּוֹפֵס","תּוֹפֶסֶת","תּוֹפְסִים"],"a":["תָּפַסְתִּי","תָּפַסְתָּ","תָּפַס","תָּפְסָה","תָּפַסְנוּ"],"u":["אֶתְפּוֹס","תִּתְפּוֹס","יִתְפּוֹס","תִּתְפּוֹס","נִתְפּוֹס"]},{"i":"לִמְכּוֹר","f":"vendre","p":["מוֹכֵר","מוֹכֶרֶת","מוֹכְרִים"],"a":["מָכַרְתִּי","מָכַרְתָּ","מָכַר","מָכְרָה","מָכַרְנוּ"],"u":["אֶמְכּוֹר","תִּמְכּוֹר","יִמְכּוֹר","תִּמְכּוֹר","נִמְכּוֹר"]},{"i":"לִמְסוֹר","f":"transmettre","p":["מוֹסֵר","מוֹסֶרֶת","מוֹסְרִים"],"a":["מָסַרְתִּי","מָסַרְתָּ","מָסַר","מָסְרָה","מָסַרְנוּ"],"u":["אֶמְסוֹר","תִּמְסוֹר","יִמְסוֹר","תִּמְסוֹר","נִמְסוֹר"]},{"i":"לִפְגּוֹשׁ","f":"rencontrer","p":["פּוֹגֵשׁ","פּוֹגֶשֶׁת","פּוֹגְשִׁים"],"a":["פָּגַשְׁתִּי","פָּגַשְׁתָּ","פָּגַשׁ","פָּגְשָׁה","פָּגַשְׁנוּ"],"u":["אֶפְגּוֹשׁ","תִּפְגּוֹשׁ","יִפְגּוֹשׁ","תִּפְגּוֹשׁ","נִפְגּוֹשׁ"]},{"i":"לִלְמוֹד","f":"apprendre / étudier","p":["לוֹמֵד","לוֹמֶדֶת","לוֹמְדִים"],"a":["לָמַדְתִּי","לָמַדְתָּ","לָמַד","לָמְדָה","לָמַדְנוּ"],"u":["אֶלְמַד","תִּלְמַד","יִלְמַד","תִּלְמַד","נִלְמַד"]},{"i":"לִשְׁכַּב","f":"se coucher","p":["שׁוֹכֵב","שׁוֹכֶבֶת","שׁוֹכְבִים"],"a":["שָׁכַבְתִּי","שָׁכַבְתָּ","שָׁכַב","שָׁכְבָה","שָׁכַבְנוּ"],"u":["אֶשְׁכַּב","תִּשְׁכַּב","יִשְׁכַּב","תִּשְׁכַּב","נִשְׁכַּב"]},{"i":"לִלְבּוֹשׁ","f":"porter (un vêtement)","p":["לוֹבֵשׁ","לוֹבֶשֶׁת","לוֹבְשִׁים"],"a":["לָבַשְׁתִּי","לָבַשְׁתָּ","לָבַשׁ","לָבְשָׁה","לָבַשְׁנוּ"],"u":["אֶלְבַּשׁ","תִּלְבַּשׁ","יִלְבַּשׁ","תִּלְבַּשׁ","נִלְבַּשׁ"]},{"i":"לִבְחוֹר","f":"choisir","p":["בּוֹחֵר","בּוֹחֶרֶת","בּוֹחֲרִים"],"a":["בָּחַרְתִּי","בָּחַרְתָּ","בָּחַר","בָּחֲרָה","בָּחַרְנוּ"],"u":["אֶבְחַר","תִּבְחַר","יִבְחַר","תִּבְחַר","נִבְחַר"]},{"i":"לַעֲבוֹד","f":"travailler","p":["עוֹבֵד","עוֹבֶדֶת","עוֹבְדִים"],"a":["עָבַדְתִּי","עָבַדְתָּ","עָבַד","עָבְדָה","עָבַדְנוּ"],"u":["אֶעֱבוֹד","תַּעֲבוֹד","יַעֲבוֹד","תַּעֲבוֹד","נַעֲבוֹד"]},{"i":"לַעֲזוֹר","f":"aider","p":["עוֹזֵר","עוֹזֶרֶת","עוֹזְרִים"],"a":["עָזַרְתִּי","עָזַרְתָּ","עָזַר","עָזְרָה","עָזַרְנוּ"],"u":["אֶעֱזוֹר","תַּעֲזוֹר","יַעֲזוֹר","תַּעֲזוֹר","נַעֲזוֹר"]},{"i":"לַעֲצוֹר","f":"arrêter / s'arrêter","p":["עוֹצֵר","עוֹצֶרֶת","עוֹצְרִים"],"a":["עָצַרְתִּי","עָצַרְתָּ","עָצַר","עָצְרָה","עָצַרְנוּ"],"u":["אֶעֱצוֹר","תַּעֲצוֹר","יַעֲצוֹר","תַּעֲצוֹר","נַעֲצוֹר"]},{"i":"לַעֲבוֹר","f":"passer / traverser","p":["עוֹבֵר","עוֹבֶרֶת","עוֹבְרִים"],"a":["עָבַרְתִּי","עָבַרְתָּ","עָבַר","עָבְרָה","עָבַרְנוּ"],"u":["אֶעֱבוֹר","תַּעֲבוֹר","יַעֲבוֹר","תַּעֲבוֹר","נַעֲבוֹר"]},{"i":"לַחְשׁוֹב","f":"penser","p":["חוֹשֵׁב","חוֹשֶׁבֶת","חוֹשְׁבִים"],"a":["חָשַׁבְתִּי","חָשַׁבְתָּ","חָשַׁב","חָשְׁבָה","חָשַׁבְנוּ"],"u":["אֶחְשׁוֹב","תַּחְשׁוֹב","יַחְשׁוֹב","תַּחְשׁוֹב","נַחְשׁוֹב"]},{"i":"לַחְקוֹר","f":"chercher / enquêter","p":["חוֹקֵר","חוֹקֶרֶת","חוֹקְרִים"],"a":["חָקַרְתִּי","חָקַרְתָּ","חָקַר","חָקְרָה","חָקַרְנוּ"],"u":["אֶחְקוֹר","תַּחְקוֹר","יַחְקוֹר","תַּחְקוֹר","נַחְקוֹר"]},{"i":"לַחְתּוֹם","f":"signer","p":["חוֹתֵם","חוֹתֶמֶת","חוֹתְמִים"],"a":["חָתַמְתִּי","חָתַמְתָּ","חָתַם","חָתְמָה","חָתַמְנוּ"],"u":["אֶחְתּוֹם","תַּחְתּוֹם","יַחְתּוֹם","תַּחְתּוֹם","נַחְתּוֹם"]},{"i":"לַחְסוֹךְ","f":"économiser","p":["חוֹסֵךְ","חוֹסֶכֶת","חוֹסְכִים"],"a":["חָסַכְתִּי","חָסַכְתָּ","חָסַךְ","חָסְכָה","חָסַכְנוּ"],"u":["אֶחְסוֹךְ","תַּחְסוֹךְ","יַחְסוֹךְ","תַּחְסוֹךְ","נַחְסוֹךְ"]},{"i":"לִרְאוֹת","f":"voir","p":["רוֹאֶה","רוֹאָה","רוֹאִים"],"a":["רָאִיתִי","רָאִיתָ","רָאָה","רָאֲתָה","רָאִינוּ"],"u":["אֶרְאֶה","תִּרְאֶה","יִרְאֶה","תִּרְאֶה","נִרְאֶה"]},{"i":"לִקְנוֹת","f":"acheter","p":["קוֹנֶה","קוֹנָה","קוֹנִים"],"a":["קָנִיתִי","קָנִיתָ","קָנָה","קָנְתָה","קָנִינוּ"],"u":["אֶקְנֶה","תִּקְנֶה","יִקְנֶה","תִּקְנֶה","נִקְנֶה"]},{"i":"לִשְׁתּוֹת","f":"boire","p":["שׁוֹתֶה","שׁוֹתָה","שׁוֹתִים"],"a":["שָׁתִיתִי","שָׁתִיתָ","שָׁתָה","שָׁתְתָה","שָׁתִינוּ"],"u":["אֶשְׁתֶּה","תִּשְׁתֶּה","יִשְׁתֶּה","תִּשְׁתֶּה","נִשְׁתֶּה"]},{"i":"לִרְצוֹת","f":"vouloir","p":["רוֹצֶה","רוֹצָה","רוֹצִים"],"a":["רָצִיתִי","רָצִיתָ","רָצָה","רָצְתָה","רָצִינוּ"],"u":["אֶרְצֶה","תִּרְצֶה","יִרְצֶה","תִּרְצֶה","נִרְצֶה"]},{"i":"לַעֲשׂוֹת","f":"faire","p":["עוֹשֶׂה","עוֹשָׂה","עוֹשִׂים"],"a":["עָשִׂיתִי","עָשִׂיתָ","עָשָׂה","עָשְׂתָה","עָשִׂינוּ"],"u":["אֶעֱשֶׂה","תַּעֲשֶׂה","יַעֲשֶׂה","תַּעֲשֶׂה","נַעֲשֶׂה"]},{"i":"לַעֲלוֹת","f":"monter","p":["עוֹלֶה","עוֹלָה","עוֹלִים"],"a":["עָלִיתִי","עָלִיתָ","עָלָה","עָלְתָה","עָלִינוּ"],"u":["אֶעֱלֶה","תַּעֲלֶה","יַעֲלֶה","תַּעֲלֶה","נַעֲלֶה"]},{"i":"לִבְנוֹת","f":"construire","p":["בּוֹנֶה","בּוֹנָה","בּוֹנִים"],"a":["בָּנִיתִי","בָּנִיתָ","בָּנָה","בָּנְתָה","בָּנִינוּ"],"u":["אֶבְנֶה","תִּבְנֶה","יִבְנֶה","תִּבְנֶה","נִבְנֶה"]},{"i":"לִפְנוֹת","f":"s'adresser à","p":["פּוֹנֶה","פּוֹנָה","פּוֹנִים"],"a":["פָּנִיתִי","פָּנִיתָ","פָּנָה","פָּנְתָה","פָּנִינוּ"],"u":["אֶפְנֶה","תִּפְנֶה","יִפְנֶה","תִּפְנֶה","נִפְנֶה"]},{"i":"לָקוּם","f":"se lever","p":["קָם","קָמָה","קָמִים"],"a":["קַמְתִּי","קַמְתָּ","קָם","קָמָה","קַמְנוּ"],"u":["אָקוּם","תָּקוּם","יָקוּם","תָּקוּם","נָקוּם"]},{"i":"לָגוּר","f":"habiter","p":["גָּר","גָּרָה","גָּרִים"],"a":["גַּרְתִּי","גַּרְתָּ","גָּר","גָּרָה","גַּרְנוּ"],"u":["אָגוּר","תָּגוּר","יָגוּר","תָּגוּר","נָגוּר"]},{"i":"לָרוּץ","f":"courir","p":["רָץ","רָצָה","רָצִים"],"a":["רַצְתִּי","רַצְתָּ","רָץ","רָצָה","רַצְנוּ"],"u":["אָרוּץ","תָּרוּץ","יָרוּץ","תָּרוּץ","נָרוּץ"]},{"i":"לָטוּס","f":"prendre l'avion","p":["טָס","טָסָה","טָסִים"],"a":["טַסְתִּי","טַסְתָּ","טָס","טָסָה","טַסְנוּ"],"u":["אָטוּס","תָּטוּס","יָטוּס","תָּטוּס","נָטוּס"]},{"i":"לָשִׁיר","f":"chanter","p":["שָׁר","שָׁרָה","שָׁרִים"],"a":["שַׁרְתִּי","שַׁרְתָּ","שָׁר","שָׁרָה","שַׁרְנוּ"],"u":["אָשִׁיר","תָּשִׁיר","יָשִׁיר","תָּשִׁיר","נָשִׁיר"]},{"i":"לָשִׂים","f":"mettre","p":["שָׂם","שָׂמָה","שָׂמִים"],"a":["שַׂמְתִּי","שַׂמְתָּ","שָׂם","שָׂמָה","שַׂמְנוּ"],"u":["אָשִׂים","תָּשִׂים","יָשִׂים","תָּשִׂים","נָשִׂים"]},{"i":"לְדַבֵּר","f":"parler","p":["מְדַבֵּר","מְדַבֶּרֶת","מְדַבְּרִים"],"a":["דִּבַּרְתִּי","דִּבַּרְתָּ","דִּבֵּר","דִּבְּרָה","דִּבַּרְנוּ"],"u":["אֲדַבֵּר","תְּדַבֵּר","יְדַבֵּר","תְּדַבֵּר","נְדַבֵּר"]},{"i":"לְשַׁלֵּם","f":"payer","p":["מְשַׁלֵּם","מְשַׁלֶּמֶת","מְשַׁלְּמִים"],"a":["שִׁלַּמְתִּי","שִׁלַּמְתָּ","שִׁלֵּם","שִׁלְּמָה","שִׁלַּמְנוּ"],"u":["אֲשַׁלֵּם","תְּשַׁלֵּם","יְשַׁלֵּם","תְּשַׁלֵּם","נְשַׁלֵּם"]},{"i":"לְבַקֵּר","f":"visiter","p":["מְבַקֵּר","מְבַקֶּרֶת","מְבַקְּרִים"],"a":["בִּקַּרְתִּי","בִּקַּרְתָּ","בִּקֵּר","בִּקְּרָה","בִּקַּרְנוּ"],"u":["אֲבַקֵּר","תְּבַקֵּר","יְבַקֵּר","תְּבַקֵּר","נְבַקֵּר"]},{"i":"לְחַפֵּשׂ","f":"chercher","p":["מְחַפֵּשׂ","מְחַפֶּשֶׂת","מְחַפְּשִׂים"],"a":["חִפַּשְׂתִּי","חִפַּשְׂתָּ","חִפֵּשׂ","חִפְּשָׂה","חִפַּשְׂנוּ"],"u":["אֲחַפֵּשׂ","תְּחַפֵּשׂ","יְחַפֵּשׂ","תְּחַפֵּשׂ","נְחַפֵּשׂ"]},{"i":"לְקַבֵּל","f":"recevoir","p":["מְקַבֵּל","מְקַבֶּלֶת","מְקַבְּלִים"],"a":["קִבַּלְתִּי","קִבַּלְתָּ","קִבֵּל","קִבְּלָה","קִבַּלְנוּ"],"u":["אֲקַבֵּל","תְּקַבֵּל","יְקַבֵּל","תְּקַבֵּל","נְקַבֵּל"]},{"i":"לְשַׂחֵק","f":"jouer (à un jeu)","p":["מְשַׂחֵק","מְשַׂחֶקֶת","מְשַׂחְקִים"],"a":["שִׂחַקְתִּי","שִׂחַקְתָּ","שִׂחֵק","שִׂחְקָה","שִׂחַקְנוּ"],"u":["אֲשַׂחֵק","תְּשַׂחֵק","יְשַׂחֵק","תְּשַׂחֵק","נְשַׂחֵק"]},{"i":"לְנַגֵּן","f":"jouer d'un instrument","p":["מְנַגֵּן","מְנַגֶּנֶת","מְנַגְּנִים"],"a":["נִגַּנְתִּי","נִגַּנְתָּ","נִגֵּן","נִגְּנָה","נִגַּנּוּ"],"u":["אֲנַגֵּן","תְּנַגֵּן","יְנַגֵּן","תְּנַגֵּן","נְנַגֵּן"]},{"i":"לְבַשֵּׁל","f":"cuisiner","p":["מְבַשֵּׁל","מְבַשֶּׁלֶת","מְבַשְּׁלִים"],"a":["בִּשַּׁלְתִּי","בִּשַּׁלְתָּ","בִּשֵּׁל","בִּשְּׁלָה","בִּשַּׁלְנוּ"],"u":["אֲבַשֵּׁל","תְּבַשֵּׁל","יְבַשֵּׁל","תְּבַשֵּׁל","נְבַשֵּׁל"]},{"i":"לְאַשֵּׁר","f":"confirmer / autoriser","p":["מְאַשֵּׁר","מְאַשֶּׁרֶת","מְאַשְּׁרִים"],"a":["אִשַּׁרְתִּי","אִשַּׁרְתָּ","אִשֵּׁר","אִשְּׁרָה","אִשַּׁרְנוּ"],"u":["אֲאַשֵּׁר","תְּאַשֵּׁר","יְאַשֵּׁר","תְּאַשֵּׁר","נְאַשֵּׁר"]},{"i":"לְבַטֵּל","f":"annuler","p":["מְבַטֵּל","מְבַטֶּלֶת","מְבַטְּלִים"],"a":["בִּטַּלְתִּי","בִּטַּלְתָּ","בִּטֵּל","בִּטְּלָה","בִּטַּלְנוּ"],"u":["אֲבַטֵּל","תְּבַטֵּל","יְבַטֵּל","תְּבַטֵּל","נְבַטֵּל"]},{"i":"לְהַזְמִין","f":"inviter / commander","p":["מַזְמִין","מַזְמִינָה","מַזְמִינִים"],"a":["הִזְמַנְתִּי","הִזְמַנְתָּ","הִזְמִין","הִזְמִינָה","הִזְמַנּוּ"],"u":["אַזְמִין","תַּזְמִין","יַזְמִין","תַּזְמִין","נַזְמִין"]},{"i":"לְהַפְסִיק","f":"arrêter / cesser","p":["מַפְסִיק","מַפְסִיקָה","מַפְסִיקִים"],"a":["הִפְסַקְתִּי","הִפְסַקְתָּ","הִפְסִיק","הִפְסִיקָה","הִפְסַקְנוּ"],"u":["אַפְסִיק","תַּפְסִיק","יַפְסִיק","תַּפְסִיק","נַפְסִיק"]},{"i":"לְהַמְשִׁיךְ","f":"continuer","p":["מַמְשִׁיךְ","מַמְשִׁיכָה","מַמְשִׁיכִים"],"a":["הִמְשַׁכְתִּי","הִמְשַׁכְתָּ","הִמְשִׁיךְ","הִמְשִׁיכָה","הִמְשַׁכְנוּ"],"u":["אַמְשִׁיךְ","תַּמְשִׁיךְ","יַמְשִׁיךְ","תַּמְשִׁיךְ","נַמְשִׁיךְ"]},{"i":"לְהַתְחִיל","f":"commencer","p":["מַתְחִיל","מַתְחִילָה","מַתְחִילִים"],"a":["הִתְחַלְתִּי","הִתְחַלְתָּ","הִתְחִיל","הִתְחִילָה","הִתְחַלְנוּ"],"u":["אַתְחִיל","תַּתְחִיל","יַתְחִיל","תַּתְחִיל","נַתְחִיל"]},{"i":"לְהִתְלַבֵּשׁ","f":"s'habiller","p":["מִתְלַבֵּשׁ","מִתְלַבֶּשֶׁת","מִתְלַבְּשִׁים"],"a":["הִתְלַבַּשְׁתִּי","הִתְלַבַּשְׁתָּ","הִתְלַבֵּשׁ","הִתְלַבְּשָׁה","הִתְלַבַּשְׁנוּ"],"u":["אֶתְלַבֵּשׁ","תִּתְלַבֵּשׁ","יִתְלַבֵּשׁ","תִּתְלַבֵּשׁ","נִתְלַבֵּשׁ"]},{"i":"לְהִתְרַחֵץ","f":"se laver","p":["מִתְרַחֵץ","מִתְרַחֶצֶת","מִתְרַחְצִים"],"a":["הִתְרַחַצְתִּי","הִתְרַחַצְתָּ","הִתְרַחֵץ","הִתְרַחְצָה","הִתְרַחַצְנוּ"],"u":["אֶתְרַחֵץ","תִּתְרַחֵץ","יִתְרַחֵץ","תִּתְרַחֵץ","נִתְרַחֵץ"]},{"i":"לְהִתְחַתֵּן","f":"se marier","p":["מִתְחַתֵּן","מִתְחַתֶּנֶת","מִתְחַתְּנִים"],"a":["הִתְחַתַּנְתִּי","הִתְחַתַּנְתָּ","הִתְחַתֵּן","הִתְחַתְּנָה","הִתְחַתַּנּוּ"],"u":["אֶתְחַתֵּן","תִּתְחַתֵּן","יִתְחַתֵּן","תִּתְחַתֵּן","נִתְחַתֵּן"]},{"i":"לְהִתְרַגֵּשׁ","f":"être ému","p":["מִתְרַגֵּשׁ","מִתְרַגֶּשֶׁת","מִתְרַגְּשִׁים"],"a":["הִתְרַגַּשְׁתִּי","הִתְרַגַּשְׁתָּ","הִתְרַגֵּשׁ","הִתְרַגְּשָׁה","הִתְרַגַּשְׁנוּ"],"u":["אֶתְרַגֵּשׁ","תִּתְרַגֵּשׁ","יִתְרַגֵּשׁ","תִּתְרַגֵּשׁ","נִתְרַגֵּשׁ"]},{"i":"לְהִתְכַּתֵּב","f":"correspondre","p":["מִתְכַּתֵּב","מִתְכַּתֶּבֶת","מִתְכַּתְּבִים"],"a":["הִתְכַּתַּבְתִּי","הִתְכַּתַּבְתָּ","הִתְכַּתֵּב","הִתְכַּתְּבָה","הִתְכַּתַּבְנוּ"],"u":["אֶתְכַּתֵּב","תִּתְכַּתֵּב","יִתְכַּתֵּב","תִּתְכַּתֵּב","נִתְכַּתֵּב"]},{"i":"לְהִתְקַבֵּל","f":"être accepté","p":["מִתְקַבֵּל","מִתְקַבֶּלֶת","מִתְקַבְּלִים"],"a":["הִתְקַבַּלְתִּי","הִתְקַבַּלְתָּ","הִתְקַבֵּל","הִתְקַבְּלָה","הִתְקַבַּלְנוּ"],"u":["אֶתְקַבֵּל","תִּתְקַבֵּל","יִתְקַבֵּל","תִּתְקַבֵּל","נִתְקַבֵּל"]},{"i":"לְהִשְׁתַּתֵּף","f":"participer","p":["מִשְׁתַּתֵּף","מִשְׁתַּתֶּפֶת","מִשְׁתַּתְּפִים"],"a":["הִשְׁתַּתַּפְתִּי","הִשְׁתַּתַּפְתָּ","הִשְׁתַּתֵּף","הִשְׁתַּתְּפָה","הִשְׁתַּתַּפְנוּ"],"u":["אֶשְׁתַּתֵּף","תִּשְׁתַּתֵּף","יִשְׁתַּתֵּף","תִּשְׁתַּתֵּף","נִשְׁתַּתֵּף"]},{"i":"לְהִסְתַּכֵּל","f":"regarder","p":["מִסְתַּכֵּל","מִסְתַּכֶּלֶת","מִסְתַּכְּלִים"],"a":["הִסְתַּכַּלְתִּי","הִסְתַּכַּלְתָּ","הִסְתַּכֵּל","הִסְתַּכְּלָה","הִסְתַּכַּלְנוּ"],"u":["אֶסְתַּכֵּל","תִּסְתַּכֵּל","יִסְתַּכֵּל","תִּסְתַּכֵּל","נִסְתַּכֵּל"]},{"i":"לְהִסְתַּדֵּר","f":"se débrouiller","p":["מִסְתַּדֵּר","מִסְתַּדֶּרֶת","מִסְתַּדְּרִים"],"a":["הִסְתַּדַּרְתִּי","הִסְתַּדַּרְתָּ","הִסְתַּדֵּר","הִסְתַּדְּרָה","הִסְתַּדַּרְנוּ"],"u":["אֶסְתַּדֵּר","תִּסְתַּדֵּר","יִסְתַּדֵּר","תִּסְתַּדֵּר","נִסְתַּדֵּר"]},{"i":"לְהִשְׁתַּפֵּר","f":"s'améliorer","p":["מִשְׁתַּפֵּר","מִשְׁתַּפֶּרֶת","מִשְׁתַּפְּרִים"],"a":["הִשְׁתַּפַּרְתִּי","הִשְׁתַּפַּרְתָּ","הִשְׁתַּפֵּר","הִשְׁתַּפְּרָה","הִשְׁתַּפַּרְנוּ"],"u":["אֶשְׁתַּפֵּר","תִּשְׁתַּפֵּר","יִשְׁתַּפֵּר","תִּשְׁתַּפֵּר","נִשְׁתַּפֵּר"]},{"i":"לְהִיכָּנֵס","f":"entrer","p":["נִכְנָס","נִכְנֶסֶת","נִכְנָסִים"],"a":["נִכְנַסְתִּי","נִכְנַסְתָּ","נִכְנַס","נִכְנְסָה","נִכְנַסְנוּ"],"u":["אֶכָּנֵס","תִּיכָּנֵס","יִיכָּנֵס","תִּיכָּנֵס","נִיכָּנֵס"]},{"i":"לְהִיגָּמֵר","f":"se terminer","p":["נִגְמָר","נִגְמֶרֶת","נִגְמָרִים"],"a":["נִגְמַרְתִּי","נִגְמַרְתָּ","נִגְמַר","נִגְמְרָה","נִגְמַרְנוּ"],"u":["אֶגָּמֵר","תִּיגָּמֵר","יִיגָּמֵר","תִּיגָּמֵר","נִיגָּמֵר"]},{"i":"לְהִיפָּגֵשׁ","f":"se rencontrer","p":["נִפְגָּשׁ","נִפְגֶּשֶׁת","נִפְגָּשִׁים"],"a":["נִפְגַּשְׁתִּי","נִפְגַּשְׁתָּ","נִפְגַּשׁ","נִפְגְּשָׁה","נִפְגַּשְׁנוּ"],"u":["אֶפָּגֵשׁ","תִּיפָּגֵשׁ","יִיפָּגֵשׁ","תִּיפָּגֵשׁ","נִיפָּגֵשׁ"]},{"i":"לְהִיזָּכֵר","f":"se souvenir","p":["נִזְכָּר","נִזְכֶּרֶת","נִזְכָּרִים"],"a":["נִזְכַּרְתִּי","נִזְכַּרְתָּ","נִזְכַּר","נִזְכְּרָה","נִזְכַּרְנוּ"],"u":["אֶזָּכֵר","תִּיזָּכֵר","יִיזָּכֵר","תִּיזָּכֵר","נִיזָּכֵר"]},{"i":"לְהִיכָּשֵׁל","f":"échouer","p":["נִכְשָׁל","נִכְשֶׁלֶת","נִכְשָׁלִים"],"a":["נִכְשַׁלְתִּי","נִכְשַׁלְתָּ","נִכְשַׁל","נִכְשְׁלָה","נִכְשַׁלְנוּ"],"u":["אֶכָּשֵׁל","תִּיכָּשֵׁל","יִיכָּשֵׁל","תִּיכָּשֵׁל","נִיכָּשֵׁל"]},{"i":"לָלֶכֶת","f":"aller (à pied)","p":["הוֹלֵךְ","הוֹלֶכֶת","הוֹלְכִים"],"a":["הָלַכְתִּי","הָלַכְתָּ","הָלַךְ","הָלְכָה","הָלַכְנוּ"],"u":["אֵלֵךְ","תֵּלֵךְ","יֵלֵךְ","תֵּלֵךְ","נֵלֵךְ"]},{"i":"לָבוֹא","f":"venir","p":["בָּא","בָּאָה","בָּאִים"],"a":["בָּאתִי","בָּאתָ","בָּא","בָּאָה","בָּאנוּ"],"u":["אָבוֹא","תָּבוֹא","יָבוֹא","תָּבוֹא","נָבוֹא"]},{"i":"לָתֵת","f":"donner","p":["נוֹתֵן","נוֹתֶנֶת","נוֹתְנִים"],"a":["נָתַתִּי","נָתַתָּ","נָתַן","נָתְנָה","נָתַנּוּ"],"u":["אֶתֵּן","תִּתֵּן","יִתֵּן","תִּתֵּן","נִתֵּן"]},{"i":"לָדַעַת","f":"savoir","p":["יוֹדֵעַ","יוֹדַעַת","יוֹדְעִים"],"a":["יָדַעְתִּי","יָדַעְתָּ","יָדַע","יָדְעָה","יָדַעְנוּ"],"u":["אֵדַע","תֵּדַע","יֵדַע","תֵּדַע","נֵדַע"]},{"i":"לָשֶׁבֶת","f":"s'asseoir","p":["יוֹשֵׁב","יוֹשֶׁבֶת","יוֹשְׁבִים"],"a":["יָשַׁבְתִּי","יָשַׁבְתָּ","יָשַׁב","יָשְׁבָה","יָשַׁבְנוּ"],"u":["אֵשֵׁב","תֵּשֵׁב","יֵשֵׁב","תֵּשֵׁב","נֵשֵׁב"]},{"i":"לָצֵאת","f":"sortir","p":["יוֹצֵא","יוֹצֵאת","יוֹצְאִים"],"a":["יָצָאתִי","יָצָאתָ","יָצָא","יָצְאָה","יָצָאנוּ"],"u":["אֵצֵא","תֵּצֵא","יֵצֵא","תֵּצֵא","נֵצֵא"]},{"i":"לוֹמַר","f":"dire","p":["אוֹמֵר","אוֹמֶרֶת","אוֹמְרִים"],"a":["אָמַרְתִּי","אָמַרְתָּ","אָמַר","אָמְרָה","אָמַרְנוּ"],"u":["אוֹמַר","תֹּאמַר","יֹאמַר","תֹּאמַר","נֹאמַר"]},{"i":"לֶאֱכוֹל","f":"manger","p":["אוֹכֵל","אוֹכֶלֶת","אוֹכְלִים"],"a":["אָכַלְתִּי","אָכַלְתָּ","אָכַל","אָכְלָה","אָכַלְנוּ"],"u":["אוֹכַל","תֹּאכַל","יֹאכַל","תֹּאכַל","נֹאכַל"]},{"i":"לִנְסוֹעַ","f":"voyager / partir","p":["נוֹסֵעַ","נוֹסַעַת","נוֹסְעִים"],"a":["נָסַעְתִּי","נָסַעְתָּ","נָסַע","נָסְעָה","נָסַעְנוּ"],"u":["אֶסַּע","תִּסַּע","יִסַּע","תִּסַּע","נִסַּע"]},{"i":"לִשְׁמוֹעַ","f":"entendre / écouter","p":["שׁוֹמֵעַ","שׁוֹמַעַת","שׁוֹמְעִים"],"a":["שָׁמַעְתִּי","שָׁמַעְתָּ","שָׁמַע","שָׁמְעָה","שָׁמַעְנוּ"],"u":["אֶשְׁמַע","תִּשְׁמַע","יִשְׁמַע","תִּשְׁמַע","נִשְׁמַע"]},{"i":"לִקְרוֹא","f":"lire","p":["קוֹרֵא","קוֹרֵאת","קוֹרְאִים"],"a":["קָרָאתִי","קָרָאתָ","קָרָא","קָרְאָה","קָרָאנוּ"],"u":["אֶקְרָא","תִּקְרָא","יִקְרָא","תִּקְרָא","נִקְרָא"]},{"i":"לִמְצוֹא","f":"trouver","p":["מוֹצֵא","מוֹצֵאת","מוֹצְאִים"],"a":["מָצָאתִי","מָצָאתָ","מָצָא","מָצְאָה","מָצָאנוּ"],"u":["אֶמְצָא","תִּמְצָא","יִמְצָא","תִּמְצָא","נִמְצָא"]},{"i":"לְהָבִין","f":"comprendre","p":["מֵבִין","מְבִינָה","מְבִינִים"],"a":["הֵבַנְתִּי","הֵבַנְתָּ","הֵבִין","הֵבִינָה","הֵבַנּוּ"],"u":["אָבִין","תָּבִין","יָבִין","תָּבִין","נָבִין"]},{"i":"לְהַכִּיר","f":"connaître","p":["מַכִּיר","מַכִּירָה","מַכִּירִים"],"a":["הִכַּרְתִּי","הִכַּרְתָּ","הִכִּיר","הִכִּירָה","הִכַּרְנוּ"],"u":["אַכִּיר","תַּכִּיר","יַכִּיר","תַּכִּיר","נַכִּיר"]},{"i":"לְהַגִּיעַ","f":"arriver","p":["מַגִּיעַ","מַגִּיעָה","מַגִּיעִים"],"a":["הִגַּעְתִּי","הִגַּעְתָּ","הִגִּיעַ","הִגִּיעָה","הִגַּעְנוּ"],"u":["אַגִּיעַ","תַּגִּיעַ","יַגִּיעַ","תַּגִּיעַ","נַגִּיעַ"]}];
 
 
 /* Thèmes de base vs avancés (pour les boutons rapides) */
@@ -7216,6 +7256,10 @@ refreshGlobalStatsDisplay();
     var rows = reviewRows();
     if (rows.length && typeof window.openFlash === 'function') window.openFlash('À revoir', rows);
   });
+  var bCJ = document.getElementById('cd-conj');
+  if (bCJ) bCJ.addEventListener('click', function () {
+    if (typeof window.openConj === 'function') window.openConj();
+  });
   var bRL = document.getElementById('cd-review-list');
   if (bRL) bRL.addEventListener('click', function () {
     var b = document.querySelector('.view-btn[data-view="revoir"]');
@@ -7282,9 +7326,15 @@ refreshGlobalStatsDisplay();
     return a;
   }
   function record(e, ok) {
-    var k = e[0] + '|' + e[1];
-    var s = storage.flash[k];
-    if (!s) { s = storage.flash[k] = { seen: 0, known: 0, again: 0 }; }
+    var store, k;
+    if (e && e.conj) {
+      if (!storage.conj || typeof storage.conj !== 'object') storage.conj = {};
+      store = storage.conj; k = e.inf;
+    } else {
+      store = storage.flash; k = e[0] + '|' + e[1];
+    }
+    var s = store[k];
+    if (!s) { s = store[k] = { seen: 0, known: 0, again: 0 }; }
     s.seen++;
     if (ok) s.known++; else s.again++;
     saveData();
@@ -7297,7 +7347,9 @@ refreshGlobalStatsDisplay();
   }
   function prepare(rows) {
     deck = shuffle(rows).map(function (e) {
-      var c = e.slice();
+      var c;
+      if (e && e.conj) { c = {}; for (var p in e) c[p] = e[p]; }
+      else c = e.slice();
       c.__f = Math.random() < 0.5 ? 'fr' : 'he';
       return c;
     });
@@ -7305,7 +7357,33 @@ refreshGlobalStatsDisplay();
     sess = { known: 0, again: 0, total: deck.length };
   }
 
+  function conjHtml(e, face, showBack) {
+    var ask = face === 'fr'
+      ? 'Pr&eacute;sent, pass&eacute; et futur en h&eacute;breu&nbsp;?'
+      : 'Pass&eacute; et futur&nbsp;?';
+    var front = face === 'fr'
+      ? '<div class="flash-face-fr">' + esc(e.pronFr) + ' &mdash; ' + esc(e.fr) + '</div>'
+      : '<div class="conj-line"><span class="conj-form">' + esc(e.pron + ' ' + e.pres) + '</span></div>';
+    var line = function (lbl, form) {
+      return '<div class="conj-line"><span class="conj-tense">' + lbl +
+             '</span><span class="conj-form">' + esc(e.pron + ' ' + form) + '</span></div>';
+    };
+    var back = (face === 'fr' ? line('pr&eacute;sent', e.pres) : '') +
+               line('pass&eacute;', e.past) + line('futur', e.fut) +
+               '<div class="conj-inf"><span class="he">' + esc(e.inf) + '</span><span>' + esc(e.fr) + '</span></div>';
+    return '<div class="flash-card' + (showBack ? '' : ' solo') + '" id="flash-card">' + front +
+      (showBack ? '<div class="flash-sep"></div>' + back : '<div class="conj-ask">' + ask + '</div>') +
+      '</div>' +
+      (showBack
+        ? '<div class="flash-acts">' +
+            '<button class="btn primary" data-ans="1">Je savais <span class="flash-key">A</span></button>' +
+            '<button class="btn" data-ans="0">&Agrave; revoir <span class="flash-key">P</span></button>' +
+          '</div>'
+        : '<div class="flash-acts"><button class="btn primary" data-flip="1">Retourner</button></div>');
+  }
+
   function cardHtml(e, face, showBack) {
+    if (e && e.conj) return conjHtml(e, face, showBack);
     var he = esc(e[2] || e[0]);
     var pr = (typeof VERB_PRESENT !== 'undefined') && (VERB_PRESENT[e[2]] || VERB_PRESENT[e[0]]);
     var heBlock = '<div class="flash-face-he">' + he +
@@ -7350,6 +7428,7 @@ refreshGlobalStatsDisplay();
         '</div>' +
       '</div>';
     if (typeof window.refreshFlashStats === 'function') window.refreshFlashStats();
+    if (typeof window.refreshConjStats === 'function') window.refreshConjStats();
   }
 
   function answer(ok) {
@@ -7372,10 +7451,35 @@ refreshGlobalStatsDisplay();
     ov.classList.remove('on');
     document.body.style.overflow = '';
     if (typeof window.refreshFlashStats === 'function') window.refreshFlashStats();
+    if (typeof window.refreshConjStats === 'function') window.refreshConjStats();
     if (typeof window.updateCoursDash === 'function') window.updateCoursDash();
     if (typeof window.renderCours === 'function') window.renderCours();
   }
   window.openFlash = open;
+
+  /* --- conjugaison : une carte = un verbe + un pronom tire au sort --- */
+  var PRONOUNS = [
+    { he: '\u05D0\u05B2\u05E0\u05B4\u05D9', fr: 'je', p: 0, pres: 0 },
+    { he: '\u05D0\u05B7\u05EA\u05BC\u05B8\u05D4', fr: 'tu', p: 1, pres: 0 },
+    { he: '\u05D4\u05D5\u05BC\u05D0', fr: 'il', p: 2, pres: 0 },
+    { he: '\u05D4\u05B4\u05D9\u05D0', fr: 'elle', p: 3, pres: 1 },
+    { he: '\u05D0\u05B2\u05E0\u05B7\u05D7\u05B0\u05E0\u05D5\u05BC', fr: 'nous', p: 4, pres: 2 }
+  ];
+
+  function conjCards(list) {
+    return (list || CONJ).map(function (v) {
+      var pr = PRONOUNS[Math.floor(Math.random() * PRONOUNS.length)];
+      return { conj: true, inf: v.i, fr: v.f, pron: pr.he, pronFr: pr.fr,
+               pres: v.p[pr.pres], past: v.a[pr.p], fut: v.u[pr.p] };
+    });
+  }
+
+  window.openConj = function (list, name) {
+    var cards = shuffle(conjCards(list)).slice(0, 25);
+    if (!cards.length) return 0;
+    open(name || 'Conjugaison \u00b7 pass\u00e9 et futur', cards);
+    return cards.length;
+  };
 
   /* Ouvre une serie a partir d'une liste de cles "he|fr" (stats, mots rates...) */
   window.openFlashKeys = function (keys, name) {
@@ -7493,6 +7597,50 @@ refreshGlobalStatsDisplay();
     window.openFlashKeys(flashWorstKeys, 'Cartes à revoir');
   });
   window.refreshFlashStats();
+
+  window.refreshConjStats = function () {
+    if (!storage.conj || typeof storage.conj !== 'object') storage.conj = {};
+    var seen = 0, known = 0, ag = 0, worst = [];
+    for (var k in storage.conj) {
+      var s = storage.conj[k];
+      seen += s.seen; known += s.known; ag += s.again;
+      if (s.again > 0) worst.push({ k: k, s: s });
+    }
+    var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    set('cj-seen', seen); set('cj-known', known); set('cj-again', ag);
+    set('cj-rate', seen ? Math.round(100 * known / seen) + '%' : '—');
+    worst.sort(function (a, b) { return (b.s.again - b.s.known) - (a.s.again - a.s.known) || b.s.again - a.s.again; });
+    conjWorst = worst.map(function (w) { return w.k; });
+    var intro = document.getElementById('cj-intro');
+    var ul = document.getElementById('cj-list');
+    var redo = document.getElementById('cj-redo');
+    if (intro) intro.textContent = seen
+      ? (worst.length ? worst.length + ' verbe' + (worst.length > 1 ? 's' : '') + ' à revoir sur les ' +
+          Object.keys(storage.conj).length + ' déjà travaillés.'
+                      : 'Aucun verbe raté pour le moment.')
+      : 'Une carte donne un verbe au présent : à toi de dire le passé et le futur. 82 verbes du vocabulaire.';
+    if (redo) redo.style.display = worst.length ? 'inline-block' : 'none';
+    if (!ul) return;
+    ul.innerHTML = worst.slice(0, 15).map(function (w) {
+      var v = null;
+      for (var n = 0; n < CONJ.length; n++) if (CONJ[n].i === w.k) { v = CONJ[n]; break; }
+      return '<li><span class="word-he">' + esc(w.k) + '</span>' +
+             '<span class="word-fr">' + esc(v ? v.f : '') + '</span>' +
+             '<span class="word-stat">' + w.s.again + ' ratée' + (w.s.again > 1 ? 's' : '') +
+             ' / ' + w.s.seen + '</span></li>';
+    }).join('');
+    ul.style.display = worst.length ? 'block' : 'none';
+  };
+  var conjWorst = [];
+  window.refreshConjStats();
+
+  var cjS = document.getElementById('cj-start');
+  if (cjS) cjS.addEventListener('click', function () { window.openConj(); });
+  var cjR = document.getElementById('cj-redo');
+  if (cjR) cjR.addEventListener('click', function () {
+    var sel = CONJ.filter(function (v) { return conjWorst.indexOf(v.i) !== -1; });
+    window.openConj(sel, 'Verbes à revoir');
+  });
 
   var rf = document.getElementById('reset-flash');
   if (rf) rf.addEventListener('click', function () {

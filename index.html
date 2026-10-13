@@ -2578,6 +2578,7 @@
       <button type="button" class="view-btn on" data-view="theme">Par th&egrave;me</button>
       <button type="button" class="view-btn" data-view="nature">Par nature</button>
       <button type="button" class="view-btn" data-view="revoir">&Agrave; revoir</button>
+      <button type="button" class="view-btn" data-view="soft">Non essentiels</button>
     </div>
     <input class="cours-search" id="cours-search" autocomplete="off"
            placeholder="Rechercher un mot en français ou en hébreu…">
@@ -3952,6 +3953,7 @@ Formes vocalisées selon la norme de l'Académie de la langue hébraïque&nbsp;;
         <div class="stat-box"><span class="num" id="fs-seen">0</span><span class="lbl">cartes vues</span></div>
         <div class="stat-box green"><span class="num" id="fs-known">0</span><span class="lbl">sues</span></div>
         <div class="stat-box red"><span class="num" id="fs-again">0</span><span class="lbl">à revoir</span></div>
+        <div class="stat-box"><span class="num" id="fs-soft">0</span><span class="lbl">non essentiels</span></div>
         <div class="stat-box gold"><span class="num" id="fs-rate">—</span><span class="lbl">% de réussite</span></div>
       </div>
       <div style="font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 14px;">
@@ -3963,6 +3965,12 @@ Formes vocalisées selon la norme de l'Académie de la langue hébraïque&nbsp;;
         <button class="btn primary" id="flash-redo">Flashcards sur ces mots</button>
       </div>
       <ul class="difficult-list" id="flash-list" style="display:none;"></ul>
+      <p class="missed-intro" id="soft-intro" style="margin-top:18px">—</p>
+      <div class="missed-actions">
+        <button class="btn" id="soft-toggle">Voir les non essentiels</button>
+        <button class="btn" id="soft-redo">Flashcards sur ces mots</button>
+      </div>
+      <ul class="difficult-list" id="soft-list" style="display:none;"></ul>
       <div class="missed-actions" style="margin-top:14px">
         <button class="btn" id="reset-flash">Effacer mes stats de flashcards</button>
       </div>
@@ -3974,6 +3982,7 @@ Formes vocalisées selon la norme de l'Académie de la langue hébraïque&nbsp;;
         <div class="stat-box"><span class="num" id="cj-seen">0</span><span class="lbl">cartes vues</span></div>
         <div class="stat-box green"><span class="num" id="cj-known">0</span><span class="lbl">réussies</span></div>
         <div class="stat-box red"><span class="num" id="cj-again">0</span><span class="lbl">à revoir</span></div>
+        <div class="stat-box"><span class="num" id="cj-soft">0</span><span class="lbl">non essentiels</span></div>
         <div class="stat-box gold"><span class="num" id="cj-rate">—</span><span class="lbl">% de réussite</span></div>
       </div>
       <p class="missed-intro" id="cj-intro">—</p>
@@ -7076,6 +7085,31 @@ refreshGlobalStatsDisplay();
     return false;
   }
 
+  /* rate en flashcards mais marque "non essentiel" (touche O), et pas deja
+     dans la liste des mots a revoir */
+  function toSoft(e) {
+    var k = e[0] + '|' + e[1];
+    if (typeof isExcludedKey === 'function' && isExcludedKey(k)) return false;
+    if (toReview(e)) return false;
+    var f = (typeof storage !== 'undefined' && storage.flash) ? storage.flash[k] : null;
+    return !!(f && f.soft > 0 && f.soft > f.known);
+  }
+
+  function softRows() {
+    var out = [], vu = {};
+    Object.keys(VOCAB).forEach(function (t) {
+      (VOCAB[t] || []).forEach(function (e) {
+        var k = e[0] + '|' + e[1];
+        if (vu[k] || !toSoft(e)) return;
+        vu[k] = 1; out.push(e);
+      });
+    });
+    out.sort(function (a, b) {
+      return String(a[1]).localeCompare(String(b[1]), 'fr', { sensitivity: 'base' });
+    });
+    return out;
+  }
+
   function reviewRows() {
     var out = [], vu = {};
     Object.keys(VOCAB).forEach(function (t) {
@@ -7092,6 +7126,10 @@ refreshGlobalStatsDisplay();
   }
 
   function groups() {
+    if (view === 'soft') {
+      var sr = softRows();
+      return sr.length ? [{ name: 'Non essentiels', rows: sr }] : [];
+    }
     if (view === 'revoir') {
       var out = reviewRows();
       return out.length ? [{ name: '\u00c0 revoir', rows: out }] : [];
@@ -7165,7 +7203,9 @@ refreshGlobalStatsDisplay();
               '</tbody></table></details>';
     });
 
-    list.innerHTML = html || (view === 'revoir' && !q
+    list.innerHTML = html || (view === 'soft' && !q
+      ? '<div class="cours-empty">Aucun mot non essentiel pour l\'instant. Un mot arrive ici quand tu le rates en flashcards avec la touche O.</div>'
+      : view === 'revoir' && !q
       ? '<div class="cours-empty">Aucun mot à revoir pour l\'instant. Un mot arrive ici dès qu\'il est raté plus souvent que réussi, en flashcards ou au quiz.</div>'
       : '<div class="cours-empty">Aucun mot ne correspond à &laquo;&nbsp;' + esc(raw) + '&nbsp;&raquo;</div>');
     countEl.textContent = q
@@ -7230,13 +7270,14 @@ refreshGlobalStatsDisplay();
     set('cd-review', nrev);
     set('cd-rate', att ? Math.round(100 * correct / att) + '%' : '—');
 
-    var fs = 0, fk = 0, fa = 0;
+    var fs = 0, fk = 0, fa = 0, fo = 0;
     var fl = storage.flash || {};
-    for (var j in fl) { fs += fl[j].seen; fk += fl[j].known; fa += fl[j].again; }
+    for (var j in fl) { fs += fl[j].seen; fk += fl[j].known; fa += fl[j].again; fo += (fl[j].soft || 0); }
     var fEl = document.getElementById('cd-flash');
     if (fEl) fEl.textContent = fs
       ? 'Flashcards : ' + fs + ' carte' + (fs > 1 ? 's' : '') + ' vue' + (fs > 1 ? 's' : '') +
-        ' · ' + fk + ' sue' + (fk > 1 ? 's' : '') + ' · ' + fa + ' ratée' + (fa > 1 ? 's' : '') +
+        ' · ' + fk + ' sue' + (fk > 1 ? 's' : '') + ' · ' + fa + ' à revoir' +
+        (fo ? ' · ' + fo + ' non essentielle' + (fo > 1 ? 's' : '') : '') +
         ' · ' + Math.round(100 * fk / fs) + ' % de réussite'
       : 'Flashcards : aucune carte révisée pour l\'instant — le bouton Flashcards de chaque liste lance une série.';
 
@@ -7312,7 +7353,7 @@ refreshGlobalStatsDisplay();
   if (!storage.flash || typeof storage.flash !== 'object') storage.flash = {};
   var dir = storage.preferences.flashDir || 'fr';
 
-  var title = '', deck = [], pos = 0, flipped = false, sess = null, again = [];
+  var title = '', deck = [], pos = 0, flipped = false, sess = null, again = [], soft = [];
 
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -7327,7 +7368,8 @@ refreshGlobalStatsDisplay();
     }
     return a;
   }
-  function record(e, ok) {
+  /* verdict : 'known' (A), 'again' (P, a revoir), 'soft' (O, rate mais non essentiel) */
+  function record(e, verdict) {
     var store, k;
     if (e && e.conj) {
       if (!storage.conj || typeof storage.conj !== 'object') storage.conj = {};
@@ -7336,9 +7378,12 @@ refreshGlobalStatsDisplay();
       store = storage.flash; k = e[0] + '|' + e[1];
     }
     var s = store[k];
-    if (!s) { s = store[k] = { seen: 0, known: 0, again: 0 }; }
+    if (!s) { s = store[k] = { seen: 0, known: 0, again: 0, soft: 0 }; }
+    if (typeof s.soft !== 'number') s.soft = 0;
     s.seen++;
-    if (ok) s.known++; else s.again++;
+    if (verdict === 'known') s.known++;
+    else if (verdict === 'soft') s.soft++;
+    else s.again++;
     saveData();
   }
 
@@ -7355,8 +7400,8 @@ refreshGlobalStatsDisplay();
       c.__f = Math.random() < 0.5 ? 'fr' : 'he';
       return c;
     });
-    pos = 0; flipped = false; again = [];
-    sess = { known: 0, again: 0, total: deck.length };
+    pos = 0; flipped = false; again = []; soft = [];
+    sess = { known: 0, again: 0, soft: 0, total: deck.length };
   }
 
   function conjHtml(e, face, showBack) {
@@ -7378,8 +7423,9 @@ refreshGlobalStatsDisplay();
       '</div>' +
       (showBack
         ? '<div class="flash-acts">' +
-            '<button class="btn primary" data-ans="1">Je savais <span class="flash-key">A</span></button>' +
-            '<button class="btn" data-ans="0">&Agrave; revoir <span class="flash-key">P</span></button>' +
+            '<button class="btn primary" data-ans="known">Je savais <span class="flash-key">A</span></button>' +
+            '<button class="btn" data-ans="again">&Agrave; revoir <span class="flash-key">P</span></button>' +
+            '<button class="btn" data-ans="soft">Non essentiel <span class="flash-key">O</span></button>' +
           '</div>'
         : '<div class="flash-acts"><button class="btn primary" data-flip="1">Retourner</button></div>');
   }
@@ -7398,8 +7444,9 @@ refreshGlobalStatsDisplay();
       '</div>' +
       (showBack
         ? '<div class="flash-acts">' +
-            '<button class="btn primary" data-ans="1">Je savais <span class="flash-key">A</span></button>' +
-            '<button class="btn" data-ans="0">&Agrave; revoir <span class="flash-key">P</span></button>' +
+            '<button class="btn primary" data-ans="known">Je savais <span class="flash-key">A</span></button>' +
+            '<button class="btn" data-ans="again">&Agrave; revoir <span class="flash-key">P</span></button>' +
+            '<button class="btn" data-ans="soft">Non essentiel <span class="flash-key">O</span></button>' +
           '</div>'
         : '<div class="flash-acts"><button class="btn primary" data-flip="1">Retourner</button></div>');
   }
@@ -7420,11 +7467,14 @@ refreshGlobalStatsDisplay();
       '<div class="flash-end">' +
         '<div class="big">' + sess.known + ' / ' + sess.total + '</div>' +
         '<p>' + pct + '&nbsp;% de cartes sues' +
-          (again.length ? ' &middot; ' + again.length + ' à revoir' : ' — série parfaite !') + '</p>' +
+          (again.length ? ' &middot; ' + again.length + ' à revoir' : '') +
+          (soft.length ? ' &middot; ' + soft.length + ' non essentielle' + (soft.length > 1 ? 's' : '') : '') +
+          (!again.length && !soft.length ? ' — série parfaite !' : '') + '</p>' +
         '<div class="flash-acts">' +
           (again.length ? '<button class="btn primary" data-redo="again">' +
             (again.length > 1 ? 'Revoir les ' + again.length + ' ratées' : 'Revoir la carte ratée') +
             '</button>' : '') +
+          (soft.length ? '<button class="btn" data-redo="soft">Revoir les non essentielles</button>' : '') +
           '<button class="btn" data-redo="all">Tout recommencer</button>' +
           '<button class="btn" data-close="1">Fermer</button>' +
         '</div>' +
@@ -7433,10 +7483,12 @@ refreshGlobalStatsDisplay();
     if (typeof window.refreshConjStats === 'function') window.refreshConjStats();
   }
 
-  function answer(ok) {
+  function answer(verdict) {
     var e = deck[pos];
-    record(e, ok);
-    if (ok) sess.known++; else { sess.again++; again.push(e); }
+    record(e, verdict);
+    if (verdict === 'known') sess.known++;
+    else if (verdict === 'soft') { sess.soft++; soft.push(e); }
+    else { sess.again++; again.push(e); }
     pos++; flipped = false;
     draw();
   }
@@ -7506,10 +7558,10 @@ refreshGlobalStatsDisplay();
       return;
     }
     var a = e.target.closest('[data-ans]');
-    if (a) return answer(a.dataset.ans === '1');
+    if (a) return answer(a.dataset.ans);
     var r = e.target.closest('[data-redo]');
     if (r) {
-      prepare(r.dataset.redo === 'again' ? again : deck);
+      prepare(r.dataset.redo === 'again' ? again : (r.dataset.redo === 'soft' ? soft : deck));
       draw();
       return;
     }
@@ -7533,8 +7585,9 @@ refreshGlobalStatsDisplay();
     if (!flipped) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     var k = (e.key || '').toLowerCase();
-    if (k === 'a' || e.key === 'ArrowLeft') { e.preventDefault(); return answer(true); }
-    if (k === 'p' || e.key === 'ArrowRight') { e.preventDefault(); return answer(false); }
+    if (k === 'a' || e.key === 'ArrowLeft') { e.preventDefault(); return answer('known'); }
+    if (k === 'p' || e.key === 'ArrowRight') { e.preventDefault(); return answer('again'); }
+    if (k === 'o' || e.key === 'ArrowDown') { e.preventDefault(); return answer('soft'); }
   });
 
   /* etat initial du selecteur de sens */
@@ -7544,17 +7597,19 @@ refreshGlobalStatsDisplay();
 
   /* --- stats flashcards (onglet Mes stats) --- */
   window.refreshFlashStats = function () {
-    var seen = 0, known = 0, ag = 0, worst = [];
+    var seen = 0, known = 0, ag = 0, so = 0, worst = [], softs = [];
     for (var k in storage.flash) {
       var s = storage.flash[k];
-      seen += s.seen; known += s.known; ag += s.again;
+      if (typeof s.soft !== 'number') s.soft = 0;
+      seen += s.seen; known += s.known; ag += s.again; so += s.soft;
       if (s.again > 0) worst.push({ k: k, s: s });
+      else if (s.soft > 0) softs.push({ k: k, s: s });
     }
     var set = function (id, v) {
       var el = document.getElementById(id);
       if (el) el.textContent = v;
     };
-    set('fs-seen', seen); set('fs-known', known); set('fs-again', ag);
+    set('fs-seen', seen); set('fs-known', known); set('fs-again', ag); set('fs-soft', so);
     set('fs-rate', seen ? Math.round(100 * known / seen) + '%' : '—');
     var ul = document.getElementById('flash-list');
     var intro = document.getElementById('flash-intro');
@@ -7584,7 +7639,56 @@ refreshGlobalStatsDisplay();
              '<span class="word-stat">' + w.s.again + ' ratée' + (w.s.again > 1 ? 's' : '') +
              ' / ' + w.s.seen + ' vue' + (w.s.seen > 1 ? 's' : '') + '</span></li>';
     }).join('');
+    softList();
   };
+
+  /* --- seconde liste : rates marques non essentiels (touche O) --- */
+  function softList() {
+    var softs = [];
+    for (var k in storage.flash) {
+      var s = storage.flash[k];
+      if ((s.soft || 0) > 0 && !(s.again > 0)) softs.push({ k: k, s: s });
+    }
+    softs.sort(function (a, b) { return b.s.soft - a.s.soft; });
+    flashSoftKeys = softs.map(function (w) { return w.k; });
+    var intro = document.getElementById('soft-intro');
+    var bt = document.getElementById('soft-toggle');
+    var br = document.getElementById('soft-redo');
+    var ul = document.getElementById('soft-list');
+    if (!ul) return;
+    if (!softs.length) {
+      if (intro) intro.textContent = 'Aucun mot non essentiel — la touche O, sur une carte, range un mot raté ici au lieu de la liste à revoir.';
+      if (bt) bt.style.display = 'none';
+      if (br) br.style.display = 'none';
+      ul.style.display = 'none'; ul.innerHTML = '';
+      return;
+    }
+    if (intro) intro.textContent = softs.length + ' mot' + (softs.length > 1 ? 's' : '') +
+      ' raté' + (softs.length > 1 ? 's' : '') + ' mais marqué' + (softs.length > 1 ? 's' : '') +
+      ' non essentiel' + (softs.length > 1 ? 's' : '') + ' (touche O).';
+    if (bt) bt.style.display = 'inline-block';
+    if (br) br.style.display = 'inline-block';
+    ul.innerHTML = softs.map(function (w) {
+      var p = w.k.split('|');
+      return '<li><span class="word-he">' + esc(p[0]) + '</span>' +
+             '<span class="word-fr">' + esc(p[1]) + '</span>' +
+             '<span class="word-stat">' + w.s.soft + ' fois non essentiel / ' + w.s.seen + ' vue' +
+             (w.s.seen > 1 ? 's' : '') + '</span></li>';
+    }).join('');
+  }
+  var flashSoftKeys = [];
+
+  var st_ = document.getElementById('soft-toggle');
+  if (st_) st_.addEventListener('click', function () {
+    var ul = document.getElementById('soft-list');
+    var open_ = ul.style.display === 'none';
+    ul.style.display = open_ ? 'block' : 'none';
+    st_.textContent = open_ ? 'Masquer les non essentiels' : 'Voir les non essentiels';
+  });
+  var sr_ = document.getElementById('soft-redo');
+  if (sr_) sr_.addEventListener('click', function () {
+    window.openFlashKeys(flashSoftKeys, 'Mots non essentiels');
+  });
 
   var flashWorstKeys = [];
   var ft = document.getElementById('flash-toggle');
@@ -7602,14 +7706,14 @@ refreshGlobalStatsDisplay();
 
   window.refreshConjStats = function () {
     if (!storage.conj || typeof storage.conj !== 'object') storage.conj = {};
-    var seen = 0, known = 0, ag = 0, worst = [];
+    var seen = 0, known = 0, ag = 0, so = 0, worst = [];
     for (var k in storage.conj) {
       var s = storage.conj[k];
-      seen += s.seen; known += s.known; ag += s.again;
+      seen += s.seen; known += s.known; ag += s.again; so += (s.soft || 0);
       if (s.again > 0) worst.push({ k: k, s: s });
     }
     var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
-    set('cj-seen', seen); set('cj-known', known); set('cj-again', ag);
+    set('cj-seen', seen); set('cj-known', known); set('cj-again', ag); set('cj-soft', so);
     set('cj-rate', seen ? Math.round(100 * known / seen) + '%' : '—');
     worst.sort(function (a, b) { return (b.s.again - b.s.known) - (a.s.again - a.s.known) || b.s.again - a.s.again; });
     conjWorst = worst.map(function (w) { return w.k; });

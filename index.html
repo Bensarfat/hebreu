@@ -1092,8 +1092,15 @@
     text-transform: uppercase; color: var(--on-accent); transition: all .15s;
   }
   .flash-btn:hover { filter: brightness(1.12); }
-  .cours-sec > summary .flash-btn { margin-left: auto; }
-  .cours-sec[open] > summary .flash-btn { margin-left: 0; }
+  /* En-tete de section : ligne 1 = nom + Flashcards + nombre de mots ;
+     ligne 2 (section ouverte) = boutons de masquage. Rien ne deborde du cadre. */
+  .cours-sec > summary { flex-wrap: wrap; row-gap: 10px; }
+  .cours-sec > summary .cours-name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+  .cours-sec > summary .flash-btn { margin-left: 0; flex: none; }
+  .cours-sec > summary .c { flex: none; }
+  .cours-sec > summary .cours-tools {
+    order: 9; flex: 1 1 100%; margin: 0; justify-content: flex-start;
+  }
 
   .flash-ov {
     position: fixed; inset: 0; z-index: 90; display: none;
@@ -1226,7 +1233,7 @@
   .cours-sec.hide-he .cours-he.shown,
   .cours-sec.hide-fr .cours-fr.shown { cursor: pointer; }
   @media (max-width: 700px) {
-    .cours-tools { width: 100%; margin: 6px 0 0; }
+    .cours-sec > summary .cours-tools { margin: 0; }
     .mask-btn { font-size: 9px; padding: 5px 9px; }
   }
 

@@ -1041,7 +1041,6 @@
 }
 #panel-tenses .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 #panel-tenses .btn:hover{opacity:.88}
-#panel-tenses #score{font-weight:700;font-size:1rem}
 @media print{
   #panel-tenses header.top{display:none}
   #panel-tenses .tabpane{display:block !important}
@@ -2606,7 +2605,6 @@
       <a href="#emplois">Emplois</a>
       <a href="#pieges">Pièges</a>
       <a href="#recap">Antisèche</a>
-      <a href="#quiz">Exercices</a>
     </nav>
   </div>
 </header>
@@ -2616,7 +2614,7 @@
 <div class="hero">
   <div class="kicker">Cours complet · niveau débutant → avancé</div>
   <h1>Construire le passé et le futur en hébreu</h1>
-  <p>Les sept <em>binyanim</em>, les verbes forts et toutes les <em>gzarot</em> (verbes faibles), avec vocalisation, translittération, emplois syntaxiques et exercices auto-corrigés.</p>
+  <p>Les sept <em>binyanim</em>, les verbes forts et toutes les <em>gzarot</em> (verbes faibles), avec vocalisation, translittération et emplois syntaxiques.</p>
   <p style="font-size:.9rem">Cliquez sur les onglets et les sections dépliables. La page s'imprime en entier (tout se déplie automatiquement à l'impression).</p>
 </div>
 
@@ -3873,33 +3871,6 @@ Mais attention à <span class="he">אַחֲרֵי שֶׁ־</span> et <span class
 <li><b>Verbes creux&nbsp;:</b> passé sans la voyelle longue, futur avec — et préfixe en <em>qamats</em>.</li>
 <li><b>פ״נ et פ״י&nbsp;:</b> réguliers au passé, déformés au futur seulement.</li>
 </ol>
-</section>
-
-<hr>
-
-<section id="quiz">
-<h2><span class="num">9.</span> Exercices auto-corrigés</h2>
-<p>Trente questions&nbsp;: conjugaison au passé, au futur, puis analyse. Tapez en hébreu — avec ou sans nikoud, en ktiv malé ou défectif, tout est accepté. Cliquez sur <b>Corriger</b> pour voir votre score et les explications.</p>
-
-<div class="qbar">
-  <button class="btn" id="check">Corriger</button>
-  <button class="btn ghost" id="reset">Recommencer</button>
-  <span id="score"></span>
-</div>
-
-<h3>A · Le passé</h3>
-<div id="qa"></div>
-
-<h3>B · Le futur</h3>
-<div id="qb"></div>
-
-<h3>C · Analyse et syntaxe</h3>
-<div id="qc"></div>
-
-<div class="qbar">
-  <button class="btn" id="check2">Corriger</button>
-  <button class="btn ghost" id="reset2">Recommencer</button>
-</div>
 </section>
 
 <footer>
@@ -8177,215 +8148,6 @@ document.querySelectorAll('#panel-tenses .tabs').forEach(function(group){
     parent.querySelectorAll(':scope > .tabpane').forEach(function(p){ p.classList.remove('on'); });
     pane.classList.add('on');
   });
-});
-
-/* ---------------- utilitaires hébreu ---------------- */
-function strip(s){
-  return (s||'')
-    .replace(/[֑-ׇ]/g,'')   // nikoud + te'amim
-    .replace(/[־׳״"'`\s\-!?.,]/g,'')
-    .trim();
-}
-
-/* ---------------- banque de questions ---------------- */
-var QA = [
- {t:'fill', q:'Conjuguez <span class="he">כָּתַב</span> au passé, 1<sup>re</sup> personne du singulier (<span class="he">אֲנִי</span>).',
-  a:['כתבתי'], sol:'כָּתַבְתִּי', why:'Suffixe <span class="he">־ְתִּי</span> collé au thème <span class="he">כָּתַב</span>.'},
-
- {t:'fill', q:'<span class="he">הוּא הִרְגִּישׁ</span> → et moi&nbsp;? <span class="he">אֲנִי ___</span>',
-  a:['הרגשתי'], sol:'הִרְגַּשְׁתִּי', why:'הפעיל&nbsp;: le <span class="he">י</span> disparaît hors de la 3<sup>e</sup> personne. Jamais <span class="he">הרגישתי</span>.'},
-
- {t:'mcq', q:'Quelle est la forme correcte de <span class="he">הֵבִין</span> à <span class="he">אֲנַחְנוּ</span> (passé)&nbsp;?',
-  o:['הֵבַנּוּ','הֵבִינוּ','הֵבִינְנוּ'], c:0,
-  why:'<span class="he">הֵבִינוּ</span> = «&nbsp;ils ont compris&nbsp;». À <span class="he">אנחנו</span>, le <span class="he">י</span> tombe&nbsp;: <span class="he">הֵבַנּוּ</span>.'},
-
- {t:'fill', q:'<span class="he">קָנָה</span> à la 3<sup>e</sup> personne du féminin singulier (<span class="he">הִיא</span>), passé.',
-  a:['קנתה'], sol:'קָנְתָה', why:'ל״ה&nbsp;: à <span class="he">היא</span> le schéma est <span class="he">־ְתָה</span>, pas <span class="he">־ִיתָה</span>.'},
-
- {t:'fill', q:'«&nbsp;J\'ai donné&nbsp;» — <span class="he">נָתַן</span> à <span class="he">אֲנִי</span>.',
-  a:['נתתי'], sol:'נָתַתִּי', why:'Le <span class="he">נ</span> final s\'assimile au <span class="he">ת</span> du suffixe. Jamais <span class="he">נתנתי</span>.'},
-
- {t:'mcq', q:'Comment dit-on «&nbsp;elle a parlé&nbsp;»&nbsp;?',
-  o:['דִּבְּרָה','דִּבַּרְתָּה','דִּבֵּרָה'], c:0,
-  why:'Suffixe vocalique <span class="he">־ָה</span> → la voyelle du thème tombe&nbsp;: <span class="he">דִּבְּרָה</span>.'},
-
- {t:'fill', q:'<span class="he">עָשָׂה</span> à <span class="he">אַתֶּם</span>, passé.',
-  a:['עשיתם'], sol:'עֲשִׂיתֶם', why:'ל״ה&nbsp;: suffixe consonantique → <span class="he">־ִיתֶם</span>.'},
-
- {t:'fill', q:'<span class="he">בָּא</span> à <span class="he">אֲנַחְנוּ</span>, passé.',
-  a:['באנו'], sol:'בָּאנוּ', why:'Verbe creux&nbsp;: aucune trace du <span class="he">ו</span> radical au passé.'},
-
- {t:'mcq', q:'<span class="he">הִתְלַבֵּשׁ</span> à <span class="he">הֵם</span>, passé&nbsp;:',
-  o:['הִתְלַבְּשׁוּ','הִתְלַבַּשׁוּ','יִתְלַבְּשׁוּ'], c:0,
-  why:'<span class="he">יִתְלַבְּשׁוּ</span> est un futur. Au passé, suffixe <span class="he">־וּ</span> et chute de la voyelle&nbsp;: <span class="he">הִתְלַבְּשׁוּ</span>.'},
-
- {t:'fill', q:'<span class="he">מָצָא</span> à <span class="he">אַתָּה</span>, passé.',
-  a:['מצאת'], sol:'מָצָאתָ', why:'ל״א&nbsp;: le <span class="he">א</span> reste écrit, la voyelle précédente s\'allonge en <em>qamats</em>.'},
-
- {t:'fill', q:'<span class="he">הָיָה</span> à <span class="he">אֲנִי</span>, passé.',
-  a:['הייתי'], sol:'הָיִיתִי', why:'ל״ה irrégulier, mais schéma ל״ה classique&nbsp;: <span class="he">הָיִיתִי</span>.'},
-
- {t:'mcq', q:'«&nbsp;J\'avais une voiture&nbsp;» (<span class="he">מְכוֹנִית</span>, féminin)&nbsp;:',
-  o:['הָיְתָה לִי מְכוֹנִית','הָיָה לִי מְכוֹנִית','הָיִיתִי מְכוֹנִית'], c:0,
-  why:'Le verbe s\'accorde avec l\'objet possédé, qui est féminin.'}
-];
-
-var QB = [
- {t:'fill', q:'<span class="he">כָּתַב</span> au futur, 3<sup>e</sup> personne masculine (<span class="he">הוּא</span>).',
-  a:['יכתוב','יכתב'], sol:'יִכְתּוֹב', why:'Préfixe <span class="he">יִ־</span> + thème <span class="he">כְתּוֹב</span>. Ktiv malé&nbsp;: <span class="he">יכתוב</span>.'},
-
- {t:'mcq', q:'<span class="he">דִּבֵּר</span> au futur, <span class="he">אֲנִי</span>&nbsp;:',
-  o:['אֲדַבֵּר','אֶדַבֵּר','אֲדִיבֵּר'], c:0,
-  why:'פיעל&nbsp;: préfixe en <em>hataf-patah</em>. Et le <span class="he">י</span> orthographique du passé disparaît.'},
-
- {t:'fill', q:'<span class="he">הִסְבִּיר</span> au futur, <span class="he">אֲנַחְנוּ</span>.',
-  a:['נסביר'], sol:'נַסְבִּיר', why:'הפעיל au futur&nbsp;: préfixe en <em>patah</em>, et le <span class="he">י</span> reste partout.'},
-
- {t:'fill', q:'<span class="he">קָנָה</span> au futur, <span class="he">הֵם</span>.',
-  a:['יקנו'], sol:'יִקְנוּ', why:'ל״ה&nbsp;: le <span class="he">־ֶה</span> tombe devant le suffixe <span class="he">־וּ</span>.'},
-
- {t:'mcq', q:'<span class="he">יָשַׁב</span> au futur, <span class="he">הוּא</span>&nbsp;:',
-  o:['יֵשֵׁב','יִשֵׁב','יוֹשֵׁב'], c:0,
-  why:'פ״י&nbsp;: le <span class="he">י</span> radical fusionne avec le préfixe, qui devient <em>tsere</em>. <span class="he">יוֹשֵׁב</span> est le participe présent.'},
-
- {t:'fill', q:'<span class="he">נָסַע</span> au futur, <span class="he">אֲנִי</span>.',
-  a:['אסע'], sol:'אֶסַּע', why:'פ״נ&nbsp;: le <span class="he">נ</span> s\'assimile et redouble la consonne suivante.'},
-
- {t:'fill', q:'<span class="he">הָלַךְ</span> au futur, <span class="he">אֲנַחְנוּ</span>.',
-  a:['נלך'], sol:'נֵלֵךְ', why:'Irrégulier, se comporte comme un פ״י&nbsp;: préfixe en <em>tsere</em>.'},
-
- {t:'mcq', q:'Comment dit-on «&nbsp;ne pars pas&nbsp;!&nbsp;» (à un homme)&nbsp;?',
-  o:['אַל תֵּלֵךְ!','לֹא תֵּלֵךְ!','לֹא לָלֶכֶת!'], c:0,
-  why:'La défense se construit toujours avec <span class="he">אַל</span> + futur 2<sup>e</sup> personne.'},
-
- {t:'fill', q:'<span class="he">קָם</span> au futur, <span class="he">הֵם</span>.',
-  a:['יקומו'], sol:'יָקוּמוּ', why:'Verbe creux&nbsp;: le <span class="he">ו</span> réapparaît au futur, préfixe en <em>qamats</em>.'},
-
- {t:'mcq', q:'<span class="he">הִתְלַבֵּשׁ</span> au futur, <span class="he">אַתְּ</span>&nbsp;:',
-  o:['תִּתְלַבְּשִׁי','תְּתַלְבְּשִׁי','הִתְלַבְּשִׁי'], c:0,
-  why:'<span class="he">הִתְלַבְּשִׁי</span> est l\'impératif. Au futur&nbsp;: <span class="he">תִּתְ־</span> + suffixe <span class="he">־ִי</span>.'},
-
- {t:'fill', q:'<span class="he">לָקַח</span> au futur, <span class="he">הוּא</span>.',
-  a:['יקח','ייקח'], sol:'יִקַּח', why:'Le <span class="he">ל</span> s\'assimile comme un <span class="he">נ</span>&nbsp;: <span class="he">יִקַּח</span>.'},
-
- {t:'mcq', q:'Quelle voyelle de préfixe signale un <b>הפעיל</b> au futur&nbsp;?',
-  o:['<span class="tr">ya-</span> — <span class="he">יַכְתִּיב</span>','<span class="tr">ye-</span> — <span class="he">יְכַתֵּב</span>','<span class="tr">yi-</span> — <span class="he">יִכְתּוֹב</span>'], c:0,
-  why:'<span class="tr">ye-</span> = פיעל/פועל, <span class="tr">yi-</span> = פעל/נפעל/התפעל, <span class="tr">you-</span> = הופעל.'}
-];
-
-var QC = [
- {t:'mcq', q:'À quel binyan appartient <span class="he">הִזְדַּקֵּן</span>&nbsp;?',
-  o:['הִתְפַּעֵל','הִפְעִיל','נִפְעַל'], c:0,
-  why:'Métathèse du <span class="he">ת</span> avec le <span class="he">ז</span> initial&nbsp;: <span class="he">הִתְזַקֵּן → הִזְדַּקֵּן</span>.'},
-
- {t:'mcq', q:'<span class="he">יִיכָּתֵב</span> — binyan et temps&nbsp;?',
-  o:['נִפְעַל, futur','נִפְעַל, passé','פָּעַל, futur'], c:0,
-  why:'Double yod + <em>daguesh</em> dans la 1<sup>re</sup> radicale = נפעל au futur. Au passé ce serait <span class="he">נִכְתַּב</span>.'},
-
- {t:'mcq', q:'Sans nikoud, <span class="he">נכנס</span> peut être&nbsp;:',
-  o:['un passé ou un présent','un passé ou un futur','un présent seulement'], c:0,
-  why:'<span class="he">נִכְנַס</span> (passé) et <span class="he">נִכְנָס</span> (présent) s\'écrivent pareil — c\'est l\'ambiguïté propre au נפעל.'},
-
- {t:'fill', q:'Complétez&nbsp;: <span class="he">אֲנִי רוֹצֶה שֶׁ___ מָחָר</span> — «&nbsp;je veux que tu viennes demain&nbsp;» (à un homme).',
-  a:['תבוא'], sol:'תָּבוֹא', why:'Après <span class="he">שֶׁ־</span> exprimant la volonté, l\'hébreu emploie le futur (équivalent du subjonctif français).'},
-
- {t:'mcq', q:'«&nbsp;Chaque été nous allions en Galilée&nbsp;» se traduit&nbsp;:',
-  o:['כָּל קַיִץ הָיִינוּ נוֹסְעִים לַגָּלִיל','כָּל קַיִץ נָסַעְנוּ לַגָּלִיל','כָּל קַיִץ נִסַּע לַגָּלִיל'], c:0,
-  why:'L\'imparfait d\'habitude se rend par <span class="he">הָיָה</span> au passé + participe présent. La 2<sup>e</sup> réponse est correcte mais ponctuelle&nbsp;; la 3<sup>e</sup> est un futur.'},
-
- {t:'fill', q:'Mettez au passé&nbsp;: <span class="he">הֵם נוֹתְנִים</span> → <span class="he">הֵם ___</span>',
-  a:['נתנו'], sol:'נָתְנוּ', why:'Ici le <span class="he">נ</span> ne s\'assimile pas&nbsp;: le suffixe <span class="he">־וּ</span> est vocalique.'}
-];
-
-/* ---------------- rendu ---------------- */
-function render(list, host, offset){
-  host.innerHTML = list.map(function(q,i){
-    var n = offset + i + 1;
-    var body;
-    if(q.t === 'fill'){
-      body = '<input type="text" data-i="'+i+'" placeholder="…">';
-    } else {
-      body = '<div class="opts">' + q.o.map(function(o,j){
-        return '<div class="opt" data-i="'+i+'" data-j="'+j+'">'+o+'</div>';
-      }).join('') + '</div>';
-    }
-    return '<div class="q" data-i="'+i+'">'
-      + '<div class="qnum">Question '+n+'</div>'
-      + '<div class="qtext">'+q.q+'</div>'
-      + body
-      + '<div class="fb"></div></div>';
-  }).join('');
-  host.querySelectorAll('.opt').forEach(function(el){
-    el.addEventListener('click', function(){
-      var box = el.closest('.q');
-      box.querySelectorAll('.opt').forEach(function(x){ x.classList.remove('sel'); });
-      el.classList.add('sel');
-    });
-  });
-}
-
-var HOSTS = [
-  {list:QA, el:document.getElementById('qa'), off:0},
-  {list:QB, el:document.getElementById('qb'), off:QA.length},
-  {list:QC, el:document.getElementById('qc'), off:QA.length + QB.length}
-];
-HOSTS.forEach(function(h){ render(h.list, h.el, h.off); });
-
-/* ---------------- correction ---------------- */
-function grade(){
-  var good = 0, total = 0;
-  HOSTS.forEach(function(h){
-    h.list.forEach(function(q,i){
-      total++;
-      var box = h.el.querySelector('.q[data-i="'+i+'"]');
-      var fb  = box.querySelector('.fb');
-      var ok  = false, answered = true;
-
-      if(q.t === 'fill'){
-        var inp = box.querySelector('input');
-        var v = strip(inp.value);
-        answered = v.length > 0;
-        ok = q.a.some(function(a){ return strip(a) === v; });
-        inp.style.borderColor = ok ? 'var(--ok)' : 'var(--warn)';
-      } else {
-        box.querySelectorAll('.opt').forEach(function(o){
-          o.classList.remove('good','bad');
-          var j = parseInt(o.dataset.j, 10);
-          if(j === q.c) o.classList.add('good');
-          if(o.classList.contains('sel') && j !== q.c) o.classList.add('bad');
-        });
-        var sel = box.querySelector('.opt.sel');
-        answered = !!sel;
-        ok = sel && parseInt(sel.dataset.j,10) === q.c;
-      }
-
-      if(ok) good++;
-      fb.className = 'fb show ' + (ok ? 'good' : 'bad');
-      var head = ok ? '✓ Correct. ' : (answered ? '✗ ' : '— Sans réponse. ');
-      var solution = (!ok && q.sol) ? 'Réponse&nbsp;: <span class="he">'+q.sol+'</span>. ' : '';
-      fb.innerHTML = head + solution + q.why;
-    });
-  });
-  var pct = Math.round(good/total*100);
-  var msg = pct >= 90 ? ' — excellent.' : pct >= 70 ? ' — solide, revoyez les points signalés.' : pct >= 50 ? ' — les bases sont là, reprenez les tableaux.' : ' — relisez les sections 2 et 3 avant de recommencer.';
-  document.getElementById('score').textContent = good + ' / ' + total + ' (' + pct + '%)' + msg;
-  document.getElementById('score').scrollIntoView({block:'center'});
-}
-
-function resetAll(){
-  HOSTS.forEach(function(h){ render(h.list, h.el, h.off); });
-  document.getElementById('score').textContent = '';
-  document.getElementById('quiz').scrollIntoView({block:'start'});
-}
-
-document.getElementById('check').addEventListener('click', grade);
-document.getElementById('check2').addEventListener('click', grade);
-document.getElementById('reset').addEventListener('click', resetAll);
-document.getElementById('reset2').addEventListener('click', resetAll);
-
-/* Entrée = corriger */
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Enter' && e.target.tagName === 'INPUT'){ e.preventDefault(); grade(); }
 });
 
 /* tout déplier à l'impression */

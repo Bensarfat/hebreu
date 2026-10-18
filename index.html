@@ -1684,6 +1684,10 @@
     .container > .tabs { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); }
     .container > .tabs .tab { flex: none; }
   }
+  /* sur telephone ou tablette tactile, pas de clavier : on cache les lettres A / O / P */
+  @media (hover: none), (max-width: 700px) {
+    .flash-key { display: none; }
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   }
@@ -1709,7 +1713,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="quiz">Quiz</button>
     <button class="tab" data-tab="grammar">Grammaire</button>
-    <button class="tab" data-tab="cours">Cours</button>
+    <button class="tab" data-tab="cours">Vocabulaire</button>
     <button class="tab" data-tab="tenses">Passé &amp; futur</button>
     <button class="tab" data-tab="stats">Mes stats</button>
   </div>
@@ -7564,7 +7568,9 @@ GRAMMAR_CATEGORIES.forEach(cat => {
   catHeader.className = 'grammar-category';
   catHeader.textContent = '⁘ ' + cat.name;
   grammarList.appendChild(catHeader);
-  cat.items.forEach(g => {
+  cat.items.slice().sort((a, b) =>
+    String(a.title).localeCompare(String(b.title), 'fr', { sensitivity: 'base', ignorePunctuation: true })
+  ).forEach(g => {
     const section = document.createElement('div');
     section.className = 'grammar-section';
     section.innerHTML = `
@@ -7679,6 +7685,11 @@ refreshGlobalStatsDisplay();
     return out;
   }
 
+  /* ordre alphabetique francais, accents et ponctuation ignores */
+  function alpha(a, b) {
+    return String(a).localeCompare(String(b), 'fr', { sensitivity: 'base', ignorePunctuation: true });
+  }
+
   function reviewRows() {
     var out = [], vu = {};
     Object.keys(VOCAB).forEach(function (t) {
@@ -7704,7 +7715,7 @@ refreshGlobalStatsDisplay();
       return out.length ? [{ name: '\u00c0 revoir', rows: out }] : [];
     }
     if (view === 'theme') {
-      return Object.keys(VOCAB).map(function (t) {
+      return Object.keys(VOCAB).slice().sort(alpha).map(function (t) {
         return { name: t, rows: VOCAB[t] || [] };
       });
     }
@@ -7725,7 +7736,8 @@ refreshGlobalStatsDisplay();
         return String(a[1]).localeCompare(String(b[1]), 'fr', { sensitivity: 'base' });
       });
       return { name: c[1], rows: arr };
-    }).filter(function (g) { return g.rows.length; });
+    }).filter(function (g) { return g.rows.length; })
+      .sort(function (a, b) { return alpha(a.name, b.name); });
   }
 
   var lastGroups = {};
@@ -8190,7 +8202,7 @@ refreshGlobalStatsDisplay();
     if (!worst.length) {
       if (intro) intro.textContent = seen
         ? 'Aucune carte ratée — tout est su pour le moment.'
-        : "Aucune carte révisée pour l'instant — ouvre l'onglet Cours et lance une série.";
+        : "Aucune carte révisée pour l'instant — ouvre l'onglet Vocabulaire et lance une série.";
       if (bt) bt.style.display = 'none';
       if (br) br.style.display = 'none';
       ul.style.display = 'none';

@@ -22,6 +22,12 @@ Réponds toujours en français, en mots simples, sans jargon.
 - **Changer un exercice, ajouter une révision ou un jeu, modifier l'apparence du site de révision** : dans le dépôt `Bensarfat/hebreu-avec-mayane`
   (ajoute-le à la session), en suivant son `CLAUDE.md`. Le changement arrive ici automatiquement après sa fusion, et chez les élèves de Maayane.
 
+## « Scanne » : intégrer les nouveaux cours depuis Dropbox
+
+Quand Benjamin écrit **« scanne »**, suis la procédure de `sources-integrees.md` : lister le dossier Dropbox des cours,
+repérer les documents qui ne sont pas encore dans le tableau, les intégrer dans `donnees.js`, faire relire l'hébreu,
+vérifier l'assemblage, ouvrir et fusionner la pull request, puis mettre le tableau à jour.
+
 ## Règles de travail
 
 1. Ne pousse jamais sur `main` : branche (`benjamin/<sujet>` ou `maayane/<sujet>`), puis pull request.

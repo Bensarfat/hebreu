@@ -702,6 +702,23 @@
   .cours-fam > summary .c { margin-left: auto; color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
   .cours-fam-items { padding: 10px 0 4px; }
 
+  /* MOT DU JOUR + CONSEIL DE LA PROF */
+  #wotd:empty { display: none; }
+  #wotd { display: grid; gap: 10px; margin: 0 auto 18px; max-width: 860px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
+  .wotd-card, .wotd-tip { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 14px 18px; box-shadow: 0 1px 2px var(--shadow); }
+  .wotd-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; color: var(--accent); }
+  .wotd-x { border: 0; background: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; }
+  .wotd-he { font-family: var(--font-he); font-size: 30px; font-weight: 700; color: var(--ink); margin: 6px 0 4px; display: flex; align-items: center; gap: 10px; justify-content: flex-start; }
+  .wotd-fr { font-size: 17px; color: var(--ink); margin: 2px 0; }
+  .wotd-ex { font-family: var(--font-he); font-size: 16px; color: var(--ink-soft); margin: 6px 0 0; }
+  .wotd-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .wotd-acts button { font: 700 14px var(--font-ui); border-radius: 999px; padding: 8px 16px; cursor: pointer; border: 1.5px solid var(--line-strong); background: var(--paper); color: var(--ink); }
+  .wotd-acts button.ok { background: var(--accent); border-color: transparent; color: var(--on-accent, #fff); }
+  .wotd-res { font-size: 14px; font-weight: 700; margin-top: 8px; }
+  .wotd-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 8px; }
+  .wotd-bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+  .wotd-tip p { margin: 6px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--ink); white-space: pre-wrap; }
+
   /* COURS PANEL */
   .cours-search {
     width: 100%; padding: 14px 18px;
@@ -1942,6 +1959,8 @@
     <span class="sep">·</span>
     <span><strong id="gs-difficult">0</strong>à revoir</span>
   </div>
+
+  <div id="wotd"></div>
 
   <div class="tabs">
     <button class="tab active" data-tab="quiz">Quiz</button>
@@ -8422,6 +8441,154 @@ document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
 
 updateStartBtn();
 refreshGlobalStatsDisplay();
+
+/* ================ MOT DU JOUR + CONSEIL DE LA PROF ================
+   Mot du jour : chaque jour un mot de l'élève, de préférence un mot qu'il rate ; « Je sais / Je ne sais pas »
+   compte comme une réponse (statistiques, révision espacée). Le conseil vient de la page parente
+   (window.__HP_TIP, site de Maayane) ; sans lui, seul le mot du jour s'affiche. */
+(function () {
+  var box = document.getElementById('wotd');
+  if (!box || typeof VOCAB === 'undefined') return;
+  function esc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function hash(t) { var h = 2166136261; for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function pool() {
+    var all = [], seen = {};
+    Object.keys(VOCAB).forEach(function (t) {
+      (VOCAB[t] || []).forEach(function (e) {
+        if (!e || !e[0]) return;
+        var k = e[0] + '|' + e[1];
+        if (seen[k] || (typeof isExcludedKey === 'function' && isExcludedKey(k))) return;
+        seen[k] = 1; all.push(e);
+      });
+    });
+    return all;
+  }
+  function weak(e) {
+    var k = e[0] + '|' + e[1], s = storage.wordStats && storage.wordStats[k], f = storage.flash && storage.flash[k];
+    return !!((s && s.wrong > s.correct) || (f && f.again > f.known));
+  }
+  function word() {
+    var d = today(), w = storage.wotd, all = pool();
+    if (!all.length) return null;
+    if (w && w.date === d) { var same = all.filter(function (e) { return e[0] + '|' + e[1] === w.k; })[0]; if (same) return same; }
+    var weakL = all.filter(weak), src = weakL.length ? weakL : all, e = src[hash(d) % src.length];
+    storage.wotd = { date: d, k: e[0] + '|' + e[1], res: null };
+    saveData();
+    return e;
+  }
+  /* ---------- défi de la semaine : réponses données du lundi au dimanche ---------- */
+  var WEEK_GOAL = 100;
+  function weekCount() {
+    var days = (storage.progress && storage.progress.days) || {}, d = new Date(), n = 0;
+    var monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+    for (var i = 0; i < 7; i++) {
+      var x = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+      var k = x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2), v = days[k];
+      if (v) n += (v.qOk || 0) + (v.qKo || 0) + (v.fK || 0) + (v.fA || 0) + (v.fS || 0) + (v.cK || 0) + (v.cA || 0) + (v.cS || 0);
+    }
+    return n;
+  }
+  /* ---------- expression de la semaine : une par semaine, sans nikoud ---------- */
+  var EXPR = [
+    ['סבבה', 'D\'accord, ça marche, cool', 'La réponse la plus courante pour dire oui.'],
+    ['יאללה', 'Allez ! On y va !', 'Pour encourager quelqu\'un ou pour partir.'],
+    ['אין בעיה', 'Pas de problème', ''],
+    ['בכיף', 'Avec plaisir', 'Réponse à « merci » ou à une demande de service.'],
+    ['לאט לאט', 'Petit à petit, doucement', 'Pour rassurer : ça viendra.'],
+    ['יהיה בסדר', 'Ça va aller', 'L\'expression la plus israélienne qui soit.'],
+    ['כל הכבוד', 'Bravo !', ''],
+    ['מה נשמע?', 'Quoi de neuf ? Comment ça va ?', ''],
+    ['אחלה', 'Super, génial', ''],
+    ['חבל על הזמן', 'Génial, incroyable', 'Mot à mot « dommage pour le temps » : selon le ton, ça peut aussi vouloir dire « c\'est une perte de temps ».'],
+    ['על הפנים', 'Nul, horrible', 'Mot à mot « sur le visage ».'],
+    ['בתיאבון', 'Bon appétit', ''],
+    ['תתחדש', 'Profite bien de ton nouvel achat', 'Au féminin : תתחדשי.'],
+    ['תבריא', 'Bon rétablissement', 'Au féminin : תבריאי.'],
+    ['מזל טוב', 'Félicitations', ''],
+    ['בהצלחה', 'Bonne chance', ''],
+    ['בדיוק', 'Exactement', ''],
+    ['סתם', 'Pour rien, je plaisante', '« סתם ! » après une blague : je rigole !'],
+    ['דווקא', 'Justement, au contraire', 'Un petit mot très utilisé et difficile à traduire.'],
+    ['שבת שלום', 'Bon chabbat', 'À partir du vendredi.'],
+    ['שבוע טוב', 'Bonne semaine', 'Le samedi soir et le dimanche.'],
+    ['נו', 'Alors ? Allez !', 'Pour presser quelqu\'un : « נו, בוא ! ».']
+  ];
+  function weekNumber() { var d = new Date(), j = new Date(d.getFullYear(), 0, 1); return Math.floor(((d - j) / 864e5 + j.getDay() + 6) / 7) + d.getFullYear() * 53; }
+  /* ---------- rappel avant le cours (heure transmise par la page parente) ---------- */
+  var nextLesson = null;
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (e.source !== window.parent || !d || d.hp !== 'agenda-info') return;
+    nextLesson = d.start || null; render();
+  });
+  function reviewList() {
+    var out = [], seen = {};
+    Object.keys(VOCAB).forEach(function (t) { (VOCAB[t] || []).forEach(function (e) { var k = e[0] + '|' + e[1]; if (!seen[k] && weak(e) && !(typeof isExcludedKey === 'function' && isExcludedKey(k))) { seen[k] = 1; out.push(e); } }); });
+    return out;
+  }
+  function render() {
+    var tip = window.__HP_TIP || {}, html = '';
+    if (nextLesson && nextLesson - Date.now() > 0 && nextLesson - Date.now() < 48 * 3600e3) {
+      var dl = new Date(nextLesson), td = new Date(), tm = new Date(td.getFullYear(), td.getMonth(), td.getDate() + 1);
+      var when = dl.toDateString() === td.toDateString() ? 'aujourd\'hui' : dl.toDateString() === tm.toDateString() ? 'demain' : dl.toLocaleDateString('fr-FR', { weekday: 'long' });
+      var rv = reviewList();
+      html += '<div class="wotd-tip"><div class="wotd-h"><span>📅 Ton prochain cours : ' + when + ' à ' + dl.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) + '</span></div>' +
+        (rv.length ? '<p>Prends 5 minutes pour revoir tes ' + rv.length + ' mot' + (rv.length > 1 ? 's' : '') + ' à revoir avant le cours.</p><div class="wotd-acts"><button type="button" class="ok" data-wrev>Réviser maintenant</button></div>'
+          : '<p>Tu es à jour dans tes révisions. Bravo !</p>') + '</div>';
+    }
+    var w = storage.wotd && storage.wotd.date === today() && storage.wotd.hide ? null : word();
+    if (w) {
+      var res = storage.wotd.res, def = w[3] || '', ex = w[4] || '';
+      html += '<div class="wotd-card"><div class="wotd-h"><span>🌟 Mot du jour</span><button type="button" class="wotd-x" data-wx title="Masquer jusqu\'à demain" aria-label="Masquer le mot du jour">×</button></div>' +
+        '<div class="wotd-he" lang="he" dir="rtl">' + esc(w[0]) + (window.HPS ? HPS.btn(HPS.word(w[0], w[2])) : '') + '</div>' +
+        (res ? '<div class="wotd-fr">' + esc(w[1]) + '</div>' + (def ? '<div class="wotd-ex" lang="he" dir="rtl">' + esc(def) + '</div>' : '') + (ex ? '<div class="wotd-ex" lang="he" dir="rtl">' + esc(ex) + '</div>' : '') +
+            '<div class="wotd-res">' + (res === 'ok' ? '✓ Bravo ! À demain pour un nouveau mot.' : 'Pas grave : tu le reverras bientôt dans tes révisions.') + '</div>'
+          : '<div class="wotd-acts"><button type="button" class="ok" data-wa="ok">Je sais ✓</button><button type="button" data-wa="ko">Je ne sais pas</button></div>') +
+        '</div>';
+    }
+    var now = new Date();
+    if (now.getDate() <= 7) {
+      var pm = new Date(now.getFullYear(), now.getMonth() - 1, 1), pre = pm.getFullYear() + '-' + ('0' + (pm.getMonth() + 1)).slice(-2) + '-';
+      var dd = (storage.progress && storage.progress.days) || {}, act = 0, good = 0, bad = 0;
+      Object.keys(dd).forEach(function (k) {
+        if (k.indexOf(pre) !== 0) return;
+        var v = dd[k], g = (v.qOk || 0) + (v.fK || 0) + (v.cK || 0), b = (v.qKo || 0) + (v.fA || 0) + (v.fS || 0) + (v.cA || 0) + (v.cS || 0);
+        if (g + b) act++; good += g; bad += b;
+      });
+      if (good + bad) {
+        var mn = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'][pm.getMonth()];
+        html += '<div class="wotd-tip"><div class="wotd-h"><span>📆 Ton bilan de ' + mn + '</span></div><p>' + act + ' jour' + (act > 1 ? 's' : '') + ' de révision, ' + (good + bad) + ' réponses, ' +
+          Math.round(100 * good / (good + bad)) + ' % de réussite. ' + (act >= 15 ? 'Quelle régularité, bravo ! 🎉' : act >= 6 ? 'Beau travail, continue !' : 'Ce mois-ci, essaie de réviser un peu plus souvent : 5 minutes suffisent.') + '</p></div>';
+      }
+    }
+    var wc = weekCount(), pct = Math.min(100, Math.round(100 * wc / WEEK_GOAL));
+    html += '<div class="wotd-tip"><div class="wotd-h"><span>🏆 Défi de la semaine</span><span>' + Math.min(wc, WEEK_GOAL) + ' / ' + WEEK_GOAL + '</span></div>' +
+      '<p>' + (wc >= WEEK_GOAL ? 'Défi réussi : ' + wc + ' réponses cette semaine ! 🎉' : WEEK_GOAL + ' réponses cette semaine (quiz, cartes, jeux) : encore ' + (WEEK_GOAL - wc) + '.') + '</p>' +
+      '<div class="wotd-bar"><i style="width:' + pct + '%"></i></div></div>';
+    var ex = EXPR[weekNumber() % EXPR.length];
+    html += '<div class="wotd-tip"><div class="wotd-h"><span>💬 L\'expression de la semaine</span></div>' +
+      '<div class="wotd-he" lang="he" dir="rtl" style="font-size:24px">' + esc(ex[0]) + (window.HPS ? HPS.btn(ex[0]) : '') + '</div>' +
+      '<p style="margin:0"><b>' + esc(ex[1]) + '</b>' + (ex[2] ? '<br><span style="color:var(--ink-soft);font-size:14.5px">' + esc(ex[2]) + '</span>' : '') + '</p></div>';
+    [['me', '💡 Le conseil de Maayane pour toi'], ['all', '💡 Le conseil de Maayane']].forEach(function (t) {
+      if (tip[t[0]]) html += '<div class="wotd-tip"><div class="wotd-h"><span>' + t[1] + '</span></div><p dir="auto">' + esc(tip[t[0]]) + '</p></div>';
+    });
+    box.innerHTML = html;
+  }
+  box.addEventListener('click', function (e) {
+    if (e.target.closest('[data-wrev]')) { var rows = reviewList(); if (rows.length && typeof window.openFlash === 'function') window.openFlash('À revoir', rows); return; }
+    var a = e.target.closest('[data-wa]'), x = e.target.closest('[data-wx]');
+    if (x) { storage.wotd.hide = true; saveData(); render(); return; }
+    if (!a || !storage.wotd || storage.wotd.res) return;
+    var p = storage.wotd.k.split('|'), ok = a.getAttribute('data-wa') === 'ok';
+    storage.wotd.res = ok ? 'ok' : 'ko';
+    updateWordStat({ he: p[0], fr: p.slice(1).join('|') }, ok ? 'correct' : 'wrong');   /* enregistre aussi */
+    if (typeof refreshGlobalStatsDisplay === 'function') refreshGlobalStatsDisplay();
+    render();
+  });
+  render();
+  setInterval(function () { if (!document.hidden && !box.contains(document.activeElement)) render(); }, 30000);
+})();
 
 /* ================ COURS — lexique consultable ================ */
 (function () {
